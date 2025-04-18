@@ -11,6 +11,7 @@ model = Model("VesselFleetComposition")
 
 import numpy as np
 import pandas as pd
+import itertools
 import time
 start_time = time.time()
 
