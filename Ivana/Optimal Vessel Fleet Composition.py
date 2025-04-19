@@ -601,8 +601,8 @@ C_purchasing_vessels = sum(df_vessels.loc[v, 'purchase_cost']*purchased_vessel[b
 C_chartering_vessels = sum(df_vessels.loc[v, 'dayrate']*chartered_vessel[b,v,p].x for b in bases for v in vessels for p in range(len(charter_periods)))
 C_operations = sum(bundle_performed[b,v,p,k].x*sum(df_tasks.loc[bundles[k][i], 'Repair_cost'] for i in range(len(bundles[k]))) for b in bases for v in vessels for k in range(len(bundles)) for p in periods)
 C_technicians = sum(task_performed[b,v,p,m].x*df_tasks.loc[m, 'Active_time']*df_tasks.loc[m, 'Technicians']*cost_tech for b in bases for v in vessels for m in tasks for p in periods)
-C_downtime_pretasks = sum(cost_downtime*df_tasks.loc[m, 'Active_time']*task_performed[b,v,p,m].x for b in bases for v in vessels for m in pre_tasks for p in periods)
-C_downtime_cortasks = (sum(cost_downtime * task_performed[b,v,p,m].x * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m].x*24 for b in bases for v in vessels for m in cor_tasks for p in periods))
+C_downtime_pretasks = sum(cost_downtime[p]*df_tasks.loc[m, 'Active_time']*task_performed[b,v,p,m].x for b in bases for v in vessels for m in pre_tasks for p in periods)
+C_downtime_cortasks = (sum(cost_downtime[p] * task_performed[b,v,p,m].x * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m].x*24 for b in bases for v in vessels for m in cor_tasks for p in periods))
 C_penalties = sum(cost_penalty_late*task_late[m].x for m in pre_tasks) + sum(cost_penalty_not_performed*task_not_performed[m].x for m in tasks)
 
 for b in bases:
