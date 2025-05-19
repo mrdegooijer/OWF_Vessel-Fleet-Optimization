@@ -60,7 +60,7 @@ vessel_task_incomp = {          # vessels that are not compatible to perform a t
 pre_tasks = [tasks[-1]]     # all preventive tasks
 cor_tasks = tasks[:2]       # all corrective tasks
 charter_periods = [periods[i:i+30] for i in range(0, len(periods), 30)]     # set of periods for chartering vessels
-print(charter_periods)
+
 
 def charter_period(y):      # returns the charter period for a certain period
     for i, x in enumerate(charter_periods):
