@@ -7,6 +7,8 @@ def create_sets(data):
     """
     turbines = int(data['general']['turbines'].iloc[0])
 
+    sets={}
+
     bases = data['bases']['SET'].tolist()
     tasks = data['tasks']['SET'].tolist()
 
@@ -24,5 +26,18 @@ def create_sets(data):
 
     weather_availability_per_vessel = 0
 
+    #Create the sets dictionary
+    sets['bases'] = bases
+    sets['tasks'] = tasks
+    sets['periods'] = periods
+    sets['charter_periods'] = charter_periods
+    sets['vessels'] = vessels
+    sets['vessel_task_compatibility'] = vessel_task_compatibility
+    sets['prev_tasks'] = prev_tasks
+    sets['corr_tasks'] = corr_tasks
+    sets['planned_prev_tasks'] = planned_prev_tasks
+    sets['planned_corr_tasks'] = planned_corr_tasks
+    sets['bundles'] = bundles
+    sets['weather_availability_per_vessel'] = weather_availability_per_vessel
 
-    return bases, periods, charter_periods, vessels, vessel_task_compatibility, tasks, prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles, weather_availability_per_vessel
+    return sets
