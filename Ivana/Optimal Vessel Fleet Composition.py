@@ -214,6 +214,8 @@ for b in bases:
 model.update()
 
 # ---------------------------- Constraints ----------------------------               
+for p in range(len(charter_periods)):
+    print(p)
 
 #1 Base capacity for vessels
 con1 = {}

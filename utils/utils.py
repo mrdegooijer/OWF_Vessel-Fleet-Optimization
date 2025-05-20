@@ -34,3 +34,26 @@ def generate_task_bundles(tasks):
         bundle.append(list(itertools.product(tasks, repeat=i + 1)))
     bundles = [j for sub in bundle for j in sub]
     return bundles
+
+def unpack_sets(sets):
+    """
+    Unpack the sets dictionary into individual variables
+    :param sets: Sets dictionary
+    :return: Unpacked variables
+    """
+    bases = sets['bases']
+    vessels = sets['vessels']
+    periods = sets['periods']
+    charter_periods = sets['charter_periods']
+    tasks = sets['tasks']
+    vessel_task_compatibility = sets['vessel_task_compatibility']
+    prev_tasks = sets['prev_tasks']
+    corr_tasks = sets['corr_tasks']
+    planned_prev_tasks = sets['planned_prev_tasks']
+    planned_corr_tasks = sets['planned_corr_tasks']
+    bundles = sets['bundles']
+    weather_availability_per_vessel = sets['weather_availability_per_vessel']
+
+    return (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
+            weather_availability_per_vessel)
