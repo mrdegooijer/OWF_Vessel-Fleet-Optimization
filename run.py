@@ -3,6 +3,7 @@ from model.sets import create_sets
 from model.parameters import create_parameters
 from model.variables import create_variables
 from model.constraints import add_constraints
+from model.objective import add_objective_function
 from gurobipy import *
 
 
@@ -22,6 +23,9 @@ def main():
 
     # Add constraints
     add_constraints(model, sets, params, vars)
+
+    # Add objective function
+    add_objective_function(model, sets, params, vars)
 
 
 if __name__ == "__main__":

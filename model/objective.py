@@ -1,16 +1,7 @@
 from gurobipy import *
-from utils.utils import *
+from utils.utils import unpack_sets, unpack_parameters, unpack_variables
 
-def add_constraints(model, sets, params, vars):
-    """
-    Add the constraints to the model
-    :param model: Gurobi model
-    :param sets: Sets
-    :param params: Parameters
-    :param vars: Variables
-    :return:
-    """
-
+def add_objective_function(model, sets, params, vars):
     # Unpack sets
     (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
@@ -32,15 +23,13 @@ def add_constraints(model, sets, params, vars):
      periods_late, hours_spent) = unpack_variables(vars)
 
 
+    # Objective function
+    cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases)
+    cost_purchase_vessel = quicksum(cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases)
 
 
-    # Constraint 1: Base capacity for vessels
-    for b in bases:
-        for v in vessels:
-            for p in charter_periods:
-                model.addConstr(purchased_vessels[b, v] + chartered_vessels[b, v, p] <= capacity_base_for_vessels[b, v] * base_use[b], name=f"base_capacity_for_vessels_{b},{v},{p}")
-
-    # Constraint 2: Maximum number of vessels available for charter
-    for v in vessels:
-        for p in charter_periods:
-            model.addConstr(quicksum(chartered_vessels[b, v, p] for b in bases) <= max_vessels_available_charter[v], name=f"max_vessels_available_for_charter_{v},{p}")
+    model.setObjective(
+        cost_bases
+        + cost_purchase_vessel,
+        GRB.MINIMIZE
+    )
