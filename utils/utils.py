@@ -57,3 +57,41 @@ def unpack_sets(sets):
     return (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
             prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
             weather_availability_per_vessel)
+
+def unpack_parameters(params):
+    """
+    Unpack the parameters dictionary into individual variables
+    :param params: Parameters dictionary
+    :return: Unpacked variables
+    """
+    cost_base_operation = params['cost_base_operation']
+    cost_vessel_purchase = params['cost_vessel_purchase']
+    cost_vessel_charter = params['cost_vessel_charter']
+    cost_vessel_operation = params['cost_vessel_operation']
+    cost_technicians = params['cost_technicians']
+    cost_downtime = params['cost_downtime']
+    penalty_preventive_late = params['penalty_preventive_late']
+    penalty_not_performed = params['penalty_not_performed']
+    vessel_speed = params['vessel_speed']
+    transfer_time = params['transfer_time']
+    max_time_offshore = params['max_time_offshore']
+    max_vessels_available_charter = params['max_vessels_available_charter']
+    distance_base_OWF = params['distance_base_OWF']
+    technicians_available = params['technicians_available']
+    capacity_base_for_vessels = params['capacity_base_for_vessels']
+    capacity_vessel_for_technicians = params['capacity_vessel_for_technicians']
+    failure_rate = params['failure_rate']
+    time_to_perform_task = params['time_to_perform_task']
+    technicians_required_task = params['technicians_required_task']
+    latest_period_to_perform_task = params['latest_period_to_perform_task']
+    tasks_in_bundles = params['tasks_in_bundles']
+    technicians_required_bundle = params['technicians_required_bundle']
+
+    return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
+            cost_vessel_operation, cost_technicians, cost_downtime,
+            penalty_preventive_late, penalty_not_performed, vessel_speed,
+            transfer_time, max_time_offshore, max_vessels_available_charter,
+            distance_base_OWF, technicians_available, capacity_base_for_vessels,
+            capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
+            technicians_required_task, latest_period_to_perform_task,
+            tasks_in_bundles, technicians_required_bundle)

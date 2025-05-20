@@ -12,14 +12,19 @@ def add_constraints(model, sets, params, vars):
     """
 
     # Unpack sets
-    (
-        bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
-        weather_availability_per_vessel
-    ) = unpack_sets(sets)
+    (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
+     weather_availability_per_vessel) = unpack_sets(sets)
 
     # Unpack parameters
-    capacity_base_for_vessels = params['capacity_base_for_vessels']
+    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
+     cost_vessel_operation, cost_technicians, cost_downtime,
+     penalty_preventive_late, penalty_not_performed, vessel_speed,
+     transfer_time, max_time_offshore, max_vessels_available_charter,
+     distance_base_OWF, technicians_available, capacity_base_for_vessels,
+     capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
+     technicians_required_task, latest_period_to_perform_task,
+     tasks_in_bundles, technicians_required_bundle) = unpack_parameters(params)
 
     # Unpack variables
     base_use = vars['base_use']
