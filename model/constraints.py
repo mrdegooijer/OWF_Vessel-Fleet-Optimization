@@ -19,7 +19,7 @@ def add_constraints(model, sets, params, vars):
     ) = unpack_sets(sets)
 
     # Unpack parameters
-    capacity_base_vessels = params['capacity_base_vessels']
+    capacity_base_for_vessels = params['capacity_base_for_vessels']
 
     # Unpack variables
     base_use = vars['base_use']
@@ -34,4 +34,4 @@ def add_constraints(model, sets, params, vars):
     for b in bases:
         for v in vessels:
             for p in charter_periods:
-                model.addConstr(purchased_vessels[b, v] + chartered_vessels[b, v, p] <= capacity_base_vessels[b, v] * base_use[b], name=f"base_capacity_for_vessels_{b},{v},{p}")
+                model.addConstr(purchased_vessels[b, v] + chartered_vessels[b, v, p] <= capacity_base_for_vessels[b, v] * base_use[b], name=f"base_capacity_for_vessels_{b},{v},{p}")
