@@ -27,10 +27,9 @@ def add_constraints(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle) = unpack_parameters(params)
 
     # Unpack variables
-    base_use = vars['base_use']
-    purchased_vessels = vars['purchased_vessels']
-    chartered_vessels = vars['chartered_vessels']
-
+    (base_use, purchased_vessels, chartered_vessels, task_performance,
+     bundle_performance, tasks_late, tasks_not_performed,
+     periods_late, hours_spent) = unpack_variables(vars)
 
 
 

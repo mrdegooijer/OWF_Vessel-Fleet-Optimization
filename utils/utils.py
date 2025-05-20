@@ -95,3 +95,23 @@ def unpack_parameters(params):
             capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
             technicians_required_task, latest_period_to_perform_task,
             tasks_in_bundles, technicians_required_bundle)
+
+def unpack_variables(vars):
+    """
+    Unpack the variables dictionary into individual variables
+    :param vars: Variables dictionary
+    :return: Unpacked variables
+    """
+    base_use = vars['base_use']
+    purchased_vessels = vars['purchased_vessels']
+    chartered_vessels = vars['chartered_vessels']
+    task_performance = vars['task_performance']
+    bundle_performance = vars['bundle_performance']
+    tasks_late = vars['tasks_late']
+    tasks_not_performed = vars['tasks_not_performed']
+    periods_late = vars['periods_late']
+    hours_spent = vars['hours_spent']
+
+    return (base_use, purchased_vessels, chartered_vessels, task_performance,
+            bundle_performance, tasks_late, tasks_not_performed,
+            periods_late, hours_spent)
