@@ -35,8 +35,10 @@ def add_constraints(model, sets, params, vars):
 
 
 
-    # Constraint 1: Amount of vessels in use less than or equal to base capacity
+    # Constraint 1: Base capacity for vessels
     for b in bases:
         for v in vessels:
             for p in charter_periods:
                 model.addConstr(purchased_vessels[b, v] + chartered_vessels[b, v, p] <= capacity_base_for_vessels[b, v] * base_use[b], name=f"base_capacity_for_vessels_{b},{v},{p}")
+
+    # Constraint 2:
