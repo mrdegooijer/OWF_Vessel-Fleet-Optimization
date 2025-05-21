@@ -31,6 +31,18 @@ def main():
     # Optimize the model
     model.optimize()
 
+    # model.computeIIS()
+    # model.write("infeasible.ilp")
+
+    # Print the results
+    if model.status == GRB.OPTIMAL:
+        print("Optimal solution found:")
+        for v in model.getVars():
+            if v.X > 0:
+                print(f"{v.VarName}: {v.X}")
+    else:
+        print("No optimal solution found.")
+
 if __name__ == "__main__":
     main()
 

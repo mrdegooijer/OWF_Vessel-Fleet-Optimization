@@ -71,7 +71,50 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 model.addConstr(quicksum(bundle_performed[b, v, p, k] for k in bundles) <= purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)], name=f"tasks_performed_limit_{b},{v},{p}")
 
-    #
+    # Constraint 7: Tasks performed late
+    for m in prev_tasks:
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in range(latest_period_to_perform_task, periods[-1])) == tasks_late[m], name=f"tasks_performed_late_{m}")
+
+    # Constraint 8: Weather availability
+
+    # Constraint 9: Vessel-task compatibility
+    for b in bases:
+        for m in tasks:
+            for v in [v for v in vessels if v not in vessel_task_compatibility[m]]:
+                for p in periods:
+                    model.addConstr(task_performed[b, v, p, m] == 0, name=f"vessel_task_compatibility_{b},{v},{p},{m}")
+
+    # Constraint 10: Perform scheduled preventive tasks
+    for m in prev_tasks:
+        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == planned_prev_tasks[m], name=f"perform_scheduled_preventive_tasks_{m}")
+
+    # Constraint 11: Perform corrective tasks
+    for m in corr_tasks:
+        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == quicksum(planned_corr_tasks.loc[m, p] for p in periods), name=f"perform_scheduled_corrective_tasks_{m}")
+
+    # Constraint 12: Corrective tasks performed after failure
+    for p in periods:
+        for m in corr_tasks:
+            model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels) <= quicksum(planned_corr_tasks.loc[m, q] for q in range(1, p+1)) - quicksum(task_performed[b, v, q, m] for b in bases for v in vessels for q in range(1, p)), name=f"corrective_tasks_after_failures{m},{p}")
+
+    # Constraint 13: Downtime for corrective tasks
+    for p in periods:
+        for m in corr_tasks:
+            model.addConstr(periods_late[p, m] == planned_corr_tasks.loc[m, p] - quicksum(task_performed[b, v, p, m] + periods_late[p-1, m] for b in bases for v in vessels), name=f"periods_late_{p},{m}")
+
+    # Constraint 14: Tasks performed from bundles
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                for m in tasks:
+                    model.addConstr(task_performed[b, v, p, m] <= quicksum(tasks_in_bundles[m, k] * bundle_performed[b, v, p, k] for k in bundles), name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
+
+    # Constraint 15: Time spent on tasks
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                for m in tasks:
+                    model.addConstr(task_performed[b, v, p, m] <= quicksum(hours_spent[c, w, q, m]/time_to_perform_task[m] - task_performed[c, w, q, m] for c in bases for w in vessels for q in range(1, p+1)) + hours_spent[b, v, p, m]/time_to_perform_task[m], name=f"time_spent_on_tasks_{b},{v},{p},{m}")
 
 
     model.update()
