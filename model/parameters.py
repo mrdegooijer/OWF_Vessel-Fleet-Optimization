@@ -21,7 +21,7 @@ def create_parameters(data, sets):
     cost_base_operation = data['bases']['cost']
     cost_vessel_purchase = data['vessels']['cost_purchase']
     cost_vessel_charter = data['vessels']['cost_charter_day']
-    cost_vessel_operation = data['tasks']['repair_cost']                      # Hourly cost?
+    cost_vessel_operation = data['vessels']['cost_operation']                      # Hourly cost?
     cost_technicians = data['general']['cost_technicians'].iloc[0]          # Hourly cost
     cost_downtime = data['general']['cost_downtime'].iloc[0]                # Hourly cost
 

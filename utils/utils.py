@@ -105,13 +105,13 @@ def unpack_variables(vars):
     base_use = vars['base_use']
     purchased_vessels = vars['purchased_vessels']
     chartered_vessels = vars['chartered_vessels']
-    task_performance = vars['task_performance']
-    bundle_performance = vars['bundle_performance']
+    task_performed = vars['task_performed']
+    bundle_performed = vars['bundle_performed']
     tasks_late = vars['tasks_late']
     tasks_not_performed = vars['tasks_not_performed']
     periods_late = vars['periods_late']
     hours_spent = vars['hours_spent']
 
-    return (base_use, purchased_vessels, chartered_vessels, task_performance,
-            bundle_performance, tasks_late, tasks_not_performed,
+    return (base_use, purchased_vessels, chartered_vessels, task_performed,
+            bundle_performed, tasks_late, tasks_not_performed,
             periods_late, hours_spent)

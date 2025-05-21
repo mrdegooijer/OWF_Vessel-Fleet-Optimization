@@ -18,18 +18,29 @@ def add_objective_function(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle) = unpack_parameters(params)
 
     # Unpack variables
-    (base_use, purchased_vessels, chartered_vessels, task_performance,
-     bundle_performance, tasks_late, tasks_not_performed,
+    (base_use, purchased_vessels, chartered_vessels, task_performed,
+     bundle_performed, tasks_late, tasks_not_performed,
      periods_late, hours_spent) = unpack_variables(vars)
 
 
     # Objective function
-    cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases)
-    cost_purchase_vessel = quicksum(cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases)
-
+    obj_cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases)
+    obj_cost_purchase_vessel = quicksum(cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases)
+    obj_cost_charter_vessel = quicksum(cost_vessel_charter[v] * chartered_vessels[b, v, p] for v in vessels for b in bases for p in charter_periods)
+    obj_cost_operations = quicksum(hours_spent[b, v, p, m] * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in bases for v in vessels for p in periods for m in tasks)
+    obj_cost_downtime_preventive = quicksum(cost_downtime * time_to_perform_task[m] * task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in prev_tasks)
+    obj_cost_downtime_corrective = quicksum(cost_downtime * (task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]) for b in bases for v in vessels for p in periods for m in corr_tasks)
+    obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
+    obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
 
     model.setObjective(
-        cost_bases
-        + cost_purchase_vessel,
+        obj_cost_bases
+        + obj_cost_purchase_vessel
+        + obj_cost_charter_vessel
+        + obj_cost_operations
+        + obj_cost_downtime_preventive
+        + obj_cost_downtime_corrective
+        + obj_cost_penalty_late
+        + obj_cost_penalty_not_performed,
         GRB.MINIMIZE
     )

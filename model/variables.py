@@ -22,16 +22,16 @@ def create_variables(model, sets):
     chartered_vessels = model.addVars(bases, vessels, charter_periods, vtype=GRB.INTEGER, name="chartered_vessels")
 
     #y_bvpm
-    task_performance = model.addVars(bases, vessels, periods, tasks, vtype=GRB.INTEGER, name="task_performance")
+    task_performed = model.addVars(bases, vessels, periods, tasks, vtype=GRB.INTEGER, name="task_performance")
 
     #n_bvpk
-    bundle_performance = model.addVars(bases, vessels, periods, bundles, vtype=GRB.INTEGER, name="bundle_performance")
+    bundle_performed = model.addVars(bases, vessels, periods, bundles, vtype=GRB.INTEGER, name="bundle_performance")
 
     #e_m
     tasks_late = model.addVars(prev_tasks, vtype=GRB.INTEGER, name="tasks_late")
 
     #i_m
-    tasks_not_performed = model.addVars(prev_tasks, vtype=GRB.INTEGER, name="tasks_not_performed")
+    tasks_not_performed = model.addVars(tasks, vtype=GRB.INTEGER, name="tasks_not_performed")
 
     #l_pm
     periods_late = model.addVars(periods, corr_tasks, vtype=GRB.INTEGER, name="periods_late")
@@ -44,12 +44,13 @@ def create_variables(model, sets):
         'base_use': base_use,
         'purchased_vessels': purchased_vessels,
         'chartered_vessels': chartered_vessels,
-        'task_performance': task_performance,
-        'bundle_performance': bundle_performance,
+        'task_performed': task_performed,
+        'bundle_performed': bundle_performed,
         'tasks_late': tasks_late,
         'tasks_not_performed': tasks_not_performed,
         'periods_late': periods_late,
         'hours_spent': hours_spent
     }
 
+    model.update()
     return vars

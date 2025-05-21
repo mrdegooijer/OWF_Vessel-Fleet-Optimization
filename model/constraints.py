@@ -27,8 +27,8 @@ def add_constraints(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle) = unpack_parameters(params)
 
     # Unpack variables
-    (base_use, purchased_vessels, chartered_vessels, task_performance,
-     bundle_performance, tasks_late, tasks_not_performed,
+    (base_use, purchased_vessels, chartered_vessels, task_performed,
+     bundle_performed, tasks_late, tasks_not_performed,
      periods_late, hours_spent) = unpack_variables(vars)
 
 
@@ -44,3 +44,7 @@ def add_constraints(model, sets, params, vars):
     for v in vessels:
         for p in charter_periods:
             model.addConstr(quicksum(chartered_vessels[b, v, p] for b in bases) <= max_vessels_available_charter[v], name=f"max_vessels_available_for_charter_{v},{p}")
+
+
+
+    model.update()

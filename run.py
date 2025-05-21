@@ -28,6 +28,9 @@ def main():
     add_objective_function(model, sets, params, vars)
 
 
+    # Optimize the model
+    model.optimize()
+
 if __name__ == "__main__":
     main()
 
