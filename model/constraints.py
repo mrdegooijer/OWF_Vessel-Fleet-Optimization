@@ -13,7 +13,7 @@ def add_constraints(model, sets, params, vars):
 
     # Unpack sets
     (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
      weather_availability_per_vessel) = unpack_sets(sets)
 
     # Unpack parameters
@@ -44,6 +44,15 @@ def add_constraints(model, sets, params, vars):
     for v in vessels:
         for p in charter_periods:
             model.addConstr(quicksum(chartered_vessels[b, v, p] for b in bases) <= max_vessels_available_charter[v], name=f"max_vessels_available_for_charter_{v},{p}")
+
+    # Constraint 3: Maximum time offshore
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (tasks_in_bundles[m, k] * (max_time_offshore[v] - transfer_time[v] * (1 + tasks_in_bundles[m, k])) - 2 * distance_base_OWF[b]/vessel_speed[v]) for k in bundles for m in tasks), name=f"max_time_offshore_{b},{v},{p}")
+
+
+
 
 
 

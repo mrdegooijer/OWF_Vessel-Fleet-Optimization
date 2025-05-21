@@ -24,7 +24,8 @@ def create_sets(data):
     corr_tasks = data['tasks'][data['tasks']['PRE/COR'] == 'COR'].index.tolist()
     planned_prev_tasks = {m: turbines * int(data['tasks'].at[m, 'preventive_rate']) for m in prev_tasks}
     planned_corr_tasks = generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, data['tasks'])
-    bundles = generate_task_bundles(tasks)
+    bundle_dict = generate_task_bundles(tasks)      # This is a dict with all bundles as values and 'bundle_ids' as keys
+    bundles = list(bundle_dict.keys())              # This is a list of all bundle_ids
 
     weather_availability_per_vessel = 0
 
@@ -39,6 +40,7 @@ def create_sets(data):
     sets['corr_tasks'] = corr_tasks
     sets['planned_prev_tasks'] = planned_prev_tasks
     sets['planned_corr_tasks'] = planned_corr_tasks
+    sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
     sets['weather_availability_per_vessel'] = weather_availability_per_vessel
 

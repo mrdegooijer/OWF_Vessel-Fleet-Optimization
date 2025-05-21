@@ -29,11 +29,15 @@ def generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, input_t
 
 
 def generate_task_bundles(tasks):
-    bundle = []
-    for i in range(4):
-        bundle.append(list(itertools.product(tasks, repeat=i + 1)))
-    bundles = [j for sub in bundle for j in sub]
-    return bundles
+    bundle_dict = {}
+    bundle_id = 1
+    for i in range(1, 5):  # bundle sizes 1 to 4
+        for combo in itertools.product(tasks, repeat=i):
+            bundle_name = f'K{bundle_id}'
+            bundle_dict[bundle_name] = combo
+            bundle_id += 1
+    return bundle_dict
+
 
 def unpack_sets(sets):
     """
@@ -51,11 +55,12 @@ def unpack_sets(sets):
     corr_tasks = sets['corr_tasks']
     planned_prev_tasks = sets['planned_prev_tasks']
     planned_corr_tasks = sets['planned_corr_tasks']
+    bundle_dict = sets['bundle_dict']
     bundles = sets['bundles']
     weather_availability_per_vessel = sets['weather_availability_per_vessel']
 
     return (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
-            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
             weather_availability_per_vessel)
 
 def unpack_parameters(params):

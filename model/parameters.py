@@ -8,7 +8,7 @@ def create_parameters(data, sets):
     # Unpack sets
     (
         bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundles,
+        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
         weather_availability_per_vessel
     ) = unpack_sets(sets)
 
@@ -53,14 +53,14 @@ def create_parameters(data, sets):
     latest_period_to_perform_task = data['general']['latest_period'].iloc[0]            # Last period to perform a preventive task w/o penalty
 
     # Maintenance Bundle Parameters
-    tasks_in_bundles = {
-        (m, k): bundles[k].count(m)
-        for k in range(len(bundles))
-        for m in tasks
-    }
+    tasks_in_bundles = {}
+    for k, task_combo in bundle_dict.items():
+        for m in tasks:
+            tasks_in_bundles[m, k] = task_combo.count(m)
+
     technicians_required_bundle = {
-        k: sum(technicians_required_task[m] for m in bundles[k])
-        for k in range(len(bundles))
+        k: sum(technicians_required_task[m] for m in bundle_dict[k])
+        for k in bundles
     }
 
     # Create the parameters dictionary
