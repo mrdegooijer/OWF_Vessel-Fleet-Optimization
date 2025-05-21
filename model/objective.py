@@ -3,7 +3,7 @@ from utils.utils import unpack_sets, unpack_parameters, unpack_variables
 
 def add_objective_function(model, sets, params, vars):
     # Unpack sets
-    (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
+    (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
      weather_availability_per_vessel) = unpack_sets(sets)
 

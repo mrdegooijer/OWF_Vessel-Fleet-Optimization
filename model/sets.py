@@ -13,7 +13,7 @@ def create_sets(data):
     tasks = data['tasks']['SET'].tolist()
 
     periods = list(range(1, int(data['general']['planning_horizon'].iloc[0]) + 1))
-    # charter_periods = list(periods[i:i+30] for i in range(0, len(periods), data['general']['charter_period'].iloc[0]))
+    charter_dict = list(periods[i:i+30] for i in range(0, len(periods), data['general']['charter_period'].iloc[0]))             #Dict with all the periods p ordered into the charter periods
     charter_periods = list(range(1, int(data['general']['planning_horizon'].iloc[0] / data['general']['charter_period'].iloc[0]) + 1))
 
     vessels = data['vessels']['SET'].tolist()
@@ -33,6 +33,7 @@ def create_sets(data):
     sets['bases'] = bases
     sets['tasks'] = tasks
     sets['periods'] = periods
+    sets['charter_dict'] = charter_dict
     sets['charter_periods'] = charter_periods
     sets['vessels'] = vessels
     sets['vessel_task_compatibility'] = vessel_task_compatibility

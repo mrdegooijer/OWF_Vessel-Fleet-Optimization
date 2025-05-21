@@ -1,3 +1,5 @@
+from tkinter.font import nametofont
+
 from gurobipy import *
 from utils.utils import *
 
@@ -12,7 +14,7 @@ def add_constraints(model, sets, params, vars):
     """
 
     # Unpack sets
-    (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
+    (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
      weather_availability_per_vessel) = unpack_sets(sets)
 
@@ -51,9 +53,25 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (tasks_in_bundles[m, k] * (max_time_offshore[v] - transfer_time[v] * (1 + tasks_in_bundles[m, k])) - 2 * distance_base_OWF[b]/vessel_speed[v]) for k in bundles for m in tasks), name=f"max_time_offshore_{b},{v},{p}")
 
+    # Constraint 4: Base capacity for technicians
+    for b in bases:
+        for p in periods:
+            model.addConstr(quicksum(technicians_required_bundle[k] * bundle_performed[b, v, p, k] for v in vessels for k in bundles) <= technicians_available[b], name=f"base_capacity_for_technicians_{b},{p}")
 
+    # Constraint 5: Vessel capacity for technicians
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                for k in bundles:
+                    model.addConstr(technicians_required_bundle[k] * bundle_performed[b, v, p , k] <= capacity_vessel_for_technicians[v] * bundle_performed[b, v, p , k], name= f"vessel_capacity_for_technicians_{b},{v},{p},{k}")
 
+    # Constraint 6: Tasks performed limited by amount of vessels available
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                model.addConstr(quicksum(bundle_performed[b, v, p, k] for k in bundles) <= purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)], name=f"tasks_performed_limit_{b},{v},{p}")
 
+    #
 
 
     model.update()

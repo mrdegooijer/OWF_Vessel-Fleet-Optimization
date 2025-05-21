@@ -48,6 +48,7 @@ def unpack_sets(sets):
     bases = sets['bases']
     vessels = sets['vessels']
     periods = sets['periods']
+    charter_dict = sets['charter_dict']
     charter_periods = sets['charter_periods']
     tasks = sets['tasks']
     vessel_task_compatibility = sets['vessel_task_compatibility']
@@ -59,7 +60,7 @@ def unpack_sets(sets):
     bundles = sets['bundles']
     weather_availability_per_vessel = sets['weather_availability_per_vessel']
 
-    return (bases, vessels, periods, charter_periods, tasks, vessel_task_compatibility,
+    return (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
             prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
             weather_availability_per_vessel)
 
@@ -120,3 +121,14 @@ def unpack_variables(vars):
     return (base_use, purchased_vessels, chartered_vessels, task_performed,
             bundle_performed, tasks_late, tasks_not_performed,
             periods_late, hours_spent)
+
+def return_charter_period(p, charter_dict):
+    """
+    Return the charter period for a given period
+    :param p: Period
+    :param charter_dict: Charter periods
+    :return: Charter period
+    """
+    for idx, period in enumerate(charter_dict):
+        if p in period:
+            return idx + 1
