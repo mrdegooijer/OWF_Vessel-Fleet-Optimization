@@ -1,6 +1,6 @@
-from utils.utils import unpack_sets
+from utils.utils import unpack_sets, generate_downtime_cost, generate_availability_set
 
-def create_parameters(data, sets):
+def create_parameters(data, sets, year):
     """
     Create all parameters for the model
     :return: params
@@ -8,8 +8,7 @@ def create_parameters(data, sets):
     # Unpack sets
     (
         bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
-        weather_availability_per_vessel
+        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles
     ) = unpack_sets(sets)
 
     # Set index for dataframes
@@ -23,7 +22,7 @@ def create_parameters(data, sets):
     cost_vessel_charter = data['vessels']['cost_charter_day']
     cost_vessel_operation = data['vessels']['cost_operation']                      # Hourly cost?
     cost_technicians = data['general']['cost_technicians'].iloc[0]          # Hourly cost
-    cost_downtime = data['general']['cost_downtime'].iloc[0]                # Hourly cost
+    cost_downtime = generate_downtime_cost(periods, year)
 
     # Penalty Parameters (implemented as cost parameters)
     penalty_preventive_late = data['general']['penalty_cost_late'].iloc[0]                  # Cost per hour?
@@ -63,6 +62,9 @@ def create_parameters(data, sets):
         for k in bundles
     }
 
+    # Weather Parameter
+    weather_max_time_offshore = generate_availability_set(vessels, periods, year, data)
+
     # Create the parameters dictionary
     params = {
         'cost_base_operation': cost_base_operation,
@@ -87,6 +89,7 @@ def create_parameters(data, sets):
         'latest_period_to_perform_task': latest_period_to_perform_task,
         'tasks_in_bundles': tasks_in_bundles,
         'technicians_required_bundle': technicians_required_bundle,
+        'weather_max_time_offshore': weather_max_time_offshore
     }
 
     return params

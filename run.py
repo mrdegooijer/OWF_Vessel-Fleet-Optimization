@@ -11,13 +11,15 @@ def main():
     # Load input data
     file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
+    # Define the year of the weather data
+    year = 2004
 
     # Initialize the model
     model = Model("de Gooijer, 2025")
 
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
-    params = create_parameters(input_data, sets)
+    params = create_parameters(input_data, sets, year)
     vars = create_variables(model, sets)
     model.update()
 
@@ -35,13 +37,13 @@ def main():
     # model.write("infeasible.ilp")
 
     # Print the results
-    if model.status == GRB.OPTIMAL:
-        print("Optimal solution found:")
-        for v in model.getVars():
-            if v.X > 0:
-                print(f"{v.VarName}: {v.X}")
-    else:
-        print("No optimal solution found.")
+    # if model.status == GRB.OPTIMAL:
+    #     print("Optimal solution found:")
+    #     for v in model.getVars():
+    #         if v.X > 0:
+    #             print(f"{v.VarName}: {v.X}")
+    # else:
+    #     print("No optimal solution found.")
 
 if __name__ == "__main__":
     main()

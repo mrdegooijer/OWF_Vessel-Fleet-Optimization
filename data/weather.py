@@ -36,12 +36,7 @@ def generate_weather_set(year):
 
     return weather
 
-def generate_availability_set(V, P, W_p):
-    """
-    Generates the availability set for the project.
-
-    :return: A
-    """
+def generate_availability_set(vessels, periods, weather):
     # wind speed and power
     wind = pd.read_excel('windpower.xlsx', usecols=['Wind speed', 'Power'])
 
@@ -52,4 +47,3 @@ def generate_availability_set(V, P, W_p):
             if p == 1:
                 x = sum(W_p.loc[i, 'Wave Height'] < W_v_V)
     return A
-

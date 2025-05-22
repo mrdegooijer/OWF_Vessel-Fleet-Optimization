@@ -141,6 +141,8 @@ for v in vessels:
             x = sum(weather.loc[i,'Wave Height'] < df_vessels.loc[v, 'Hslimit'] for i in range((24*p-25), (24*p-1)))
         hoursavailable[v,p] = x
 
+
+
 # Cost downtime power curve
 cost_downtime = {}
 for p in periods:

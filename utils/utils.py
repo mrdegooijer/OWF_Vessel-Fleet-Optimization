@@ -58,11 +58,9 @@ def unpack_sets(sets):
     planned_corr_tasks = sets['planned_corr_tasks']
     bundle_dict = sets['bundle_dict']
     bundles = sets['bundles']
-    weather_availability_per_vessel = sets['weather_availability_per_vessel']
 
     return (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
-            weather_availability_per_vessel)
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles)
 
 def unpack_parameters(params):
     """
@@ -92,6 +90,7 @@ def unpack_parameters(params):
     latest_period_to_perform_task = params['latest_period_to_perform_task']
     tasks_in_bundles = params['tasks_in_bundles']
     technicians_required_bundle = params['technicians_required_bundle']
+    weather_max_time_offshore = params['weather_max_time_offshore']
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
             cost_vessel_operation, cost_technicians, cost_downtime,
@@ -100,7 +99,7 @@ def unpack_parameters(params):
             distance_base_OWF, technicians_available, capacity_base_for_vessels,
             capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
             technicians_required_task, latest_period_to_perform_task,
-            tasks_in_bundles, technicians_required_bundle)
+            tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore)
 
 def unpack_variables(vars):
     """
@@ -132,3 +131,68 @@ def return_charter_period(p, charter_dict):
     for idx, period in enumerate(charter_dict):
         if p in period:
             return idx + 1
+
+def generate_weather_set(year):
+    """
+    Generates the weather set for the project.
+
+    :param year
+    :return: K
+    """
+    file_path = 'data/weatherconditions.xlsx'
+
+    if year == 2004:
+        weather = pd.read_excel(file_path, nrows=8783, usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2005:
+        weather = pd.read_excel(file_path, nrows=8760, skiprows=range(1, 8784),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2006:
+        weather = pd.read_excel(file_path, nrows=8760, skiprows=range(1, 17544),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2007:
+        weather = pd.read_excel(file_path, nrows=8760, skiprows=range(1, 26304),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2008:
+        weather = pd.read_excel(file_path, nrows=8784, skiprows=range(1, 35064),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2009:
+        weather = pd.read_excel(file_path, nrows=8760, skiprows=range(1, 43848),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2010:
+        weather = pd.read_excel(file_path, nrows=8760, skiprows=range(1, 52608),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+    elif year == 2011:
+        weather = pd.read_excel(file_path, nrows=8784, skiprows=range(1, 61368),
+                                usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+
+    return weather
+
+def generate_availability_set(vessels, periods, year, data):
+    df_weather = generate_weather_set(year)
+
+    weather_max_time_offshore = {}
+
+    for v in vessels:
+        for p in periods:
+            if p == 1:
+                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels']['Hslimit'] for i in range(0, 23))
+            else:
+                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels']['Hslimit'] for i in range((24*p-25), (24*p-1)))
+            weather_max_time_offshore[v, p] = hours_available
+
+    return weather_max_time_offshore
+
+def generate_downtime_cost(periods, year):
+    df_windpower = pd.read_excel('data/windpower.xlsx', usecols=['Wind speed', 'Power'])
+    df_weather = generate_weather_set((year))
+
+    cost_downtime = {}
+    for p in periods:
+        if p == 1:
+            cost_downtime[p] = (90/1000) * df_windpower.loc[np.where(df_windpower['Wind speed'] == round(
+                sum(df_weather.loc[i, 'Wind Speed'] for i in range(0, 23))/23)), 'Power'].values[0]
+        else:
+            cost_downtime[p] = (90 / 1000) * df_windpower.loc[np.where(df_windpower['Wind speed'] == round(
+                sum(df_weather.loc[i, 'Wind Speed'] for i in range((24*p-25), (24*p-1))) / 24)), 'Power'].values[0]
+
+    return cost_downtime

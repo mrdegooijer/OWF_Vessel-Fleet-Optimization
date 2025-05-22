@@ -27,7 +27,6 @@ def create_sets(data):
     bundle_dict = generate_task_bundles(tasks)      # This is a dict with all bundles as values and 'bundle_ids' as keys
     bundles = list(bundle_dict.keys())              # This is a list of all bundle_ids
 
-    weather_availability_per_vessel = 0
 
     #Create the sets dictionary
     sets['bases'] = bases
@@ -43,6 +42,5 @@ def create_sets(data):
     sets['planned_corr_tasks'] = planned_corr_tasks
     sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
-    sets['weather_availability_per_vessel'] = weather_availability_per_vessel
 
     return sets
