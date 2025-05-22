@@ -75,8 +75,11 @@ def add_constraints(model, sets, params, vars):
     for m in prev_tasks:
         model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in range(latest_period_to_perform_task, periods[-1])) == tasks_late[m], name=f"tasks_performed_late_{m}")
 
-    # Constraint 8: Weather availability
-
+    # Constraint 8: Weather restrictions
+    for b in bases:
+        for v in vessels:
+            for p in periods:
+                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (tasks_in_bundles[m, k] * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + tasks_in_bundles[m, k])) - 2 * distance_base_OWF[b]/vessel_speed[v]) for k in bundles for m in tasks), name=f"weather_availability_{b},{v},{p}")
 
     # Constraint 9: Vessel-task compatibility
     for b in bases:

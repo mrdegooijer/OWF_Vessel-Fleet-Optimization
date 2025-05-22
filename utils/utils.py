@@ -175,9 +175,9 @@ def generate_availability_set(vessels, periods, year, data):
     for v in vessels:
         for p in periods:
             if p == 1:
-                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels']['Hslimit'] for i in range(0, 23))
+                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels'].loc[v, 'Hslimit'] for i in range(0, 23))
             else:
-                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels']['Hslimit'] for i in range((24*p-25), (24*p-1)))
+                hours_available = sum(df_weather.loc[i, 'Wave Height'] < data['vessels'].loc[v, 'Hslimit'] for i in range((24*p-25), (24*p-1)))
             weather_max_time_offshore[v, p] = hours_available
 
     return weather_max_time_offshore
