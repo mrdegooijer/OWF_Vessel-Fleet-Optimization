@@ -51,7 +51,7 @@ def add_constraints(model, sets, params, vars):
     for b in bases:
         for v in vessels:
             for p in periods:
-                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (tasks_in_bundles[m, k] * (max_time_offshore[v] - transfer_time[v] * (1 + tasks_in_bundles[m, k])) - 2 * distance_base_OWF[b]/vessel_speed[v]) for k in bundles for m in tasks), name=f"max_time_offshore_{b},{v},{p}")
+                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[b]/vessel_speed[v])) for k in bundles), name=f"max_time_offshore_{b},{v},{p}")
 
     # Constraint 4: Base capacity for technicians
     for b in bases:
@@ -79,7 +79,7 @@ def add_constraints(model, sets, params, vars):
     for b in bases:
         for v in vessels:
             for p in periods:
-                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (tasks_in_bundles[m, k] * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + tasks_in_bundles[m, k])) - 2 * distance_base_OWF[b]/vessel_speed[v]) for k in bundles for m in tasks), name=f"weather_availability_{b},{v},{p}")
+                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (len(bundle_dict[k]) * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[b]/vessel_speed[v])) for k in bundles), name=f"weather_availability_{b},{v},{p}")
 
     # Constraint 9: Vessel-task compatibility
     for b in bases:

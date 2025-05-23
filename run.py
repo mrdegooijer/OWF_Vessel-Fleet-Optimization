@@ -4,6 +4,7 @@ from model.parameters import create_parameters
 from model.variables import create_variables
 from model.constraints import add_constraints
 from model.objective import add_objective_function
+from model.solution import *
 from gurobipy import *
 
 
@@ -31,10 +32,19 @@ def main():
 
 
     # Optimize the model
-    model.optimize()
+    # model.optimize()
+
+
+    # Start the greedy construction
+    solution_vector = greedy_construction(model, sets, params, vars)
+
+
+
+
 
     # model.computeIIS()
     # model.write("infeasible.ilp")
+
 
     # Print the results
     # if model.status == GRB.OPTIMAL:
