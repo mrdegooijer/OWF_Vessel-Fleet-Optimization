@@ -78,7 +78,7 @@ def create_parameters(data, sets, year):
         for s in spare_parts for b in bases
     }
     parts_required = {
-        (s, m): data['spare_parts_required'].at[s, m]
+        (m, s): data['spare_parts_required'].at[s, m]
         for s in spare_parts for m in tasks
     }
     max_part_capacity = {

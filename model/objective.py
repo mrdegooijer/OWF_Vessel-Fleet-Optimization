@@ -35,6 +35,7 @@ def add_objective_function(model, sets, params, vars):
     obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]) for b in bases for v in vessels for p in periods for m in corr_tasks)
     obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
     obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
+    obj_spare_parts_cost = quicksum(holding_cost[s, b] * inventory_level[s, b, p] + order_cost[s] * order_quantity[s, b, p] for s in spare_parts for b in bases for p in periods)
 
     model.setObjective(
         obj_cost_bases
@@ -44,6 +45,7 @@ def add_objective_function(model, sets, params, vars):
         + obj_cost_downtime_preventive
         + obj_cost_downtime_corrective
         + obj_cost_penalty_late
-        + obj_cost_penalty_not_performed,
+        + obj_cost_penalty_not_performed
+        + obj_spare_parts_cost,
         GRB.MINIMIZE
     )

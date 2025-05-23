@@ -20,7 +20,7 @@ def main():
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
     params = create_parameters(input_data, sets, year)
-    vars = create_variables(model, sets)
+    vars = create_variables(model, sets, params)
     model.update()
 
     # Add constraints
@@ -33,8 +33,8 @@ def main():
     # Optimize the model
     model.optimize()
 
-    # model.computeIIS()
-    # model.write("infeasible.ilp")
+    model.computeIIS()
+    model.write("infeasible.ilp")
 
     # Print the results
     # if model.status == GRB.OPTIMAL:
