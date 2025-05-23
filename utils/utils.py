@@ -92,6 +92,13 @@ def unpack_parameters(params):
     tasks_in_bundles = params['tasks_in_bundles']
     technicians_required_bundle = params['technicians_required_bundle']
     weather_max_time_offshore = params['weather_max_time_offshore']
+    order_cost = params['order_cost']
+    lead_time = params['lead_time']
+    holding_cost = params['holding_cost']
+    parts_required = params['parts_required']
+    max_part_capacity = params['max_part_capacity']
+    reorder_level = params['reorder_level']
+    big_m = params['big_m']
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
             cost_vessel_operation, cost_technicians, cost_downtime,
@@ -100,7 +107,9 @@ def unpack_parameters(params):
             distance_base_OWF, technicians_available, capacity_base_for_vessels,
             capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
             technicians_required_task, latest_period_to_perform_task,
-            tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore)
+            tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
+            order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
+            reorder_level, big_m)
 
 def unpack_variables(vars):
     """

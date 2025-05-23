@@ -15,7 +15,9 @@ def add_objective_function(model, sets, params, vars):
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
      capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
      technicians_required_task, latest_period_to_perform_task,
-     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore) = unpack_parameters(params)
+     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
+     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
+     reorder_level, big_m) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
