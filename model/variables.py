@@ -8,7 +8,7 @@ def create_variables(model, sets):
     """
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts
      ) = unpack_sets(sets)
 
 
@@ -40,6 +40,16 @@ def create_variables(model, sets):
     hours_spent = model.addVars(bases, vessels, periods, tasks, lb=0, vtype=GRB.INTEGER, name='hours_spent')
 
 
+    # Extension variables
+    # q_sbp
+    inventory_level = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="inventory_level")
+
+    # o_sbp
+    order_quantity = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
+
+    # o^trig_sbp
+    order_trigger = model.addVars(spare_parts, bases, periods, lb=0, ub=1, vtype=GRB.BINARY, name="order_trigger")
+
     # Initial values
     for b in bases:
         for v in vessels:
@@ -60,7 +70,10 @@ def create_variables(model, sets):
         'tasks_late': tasks_late,
         'tasks_not_performed': tasks_not_performed,
         'periods_late': periods_late,
-        'hours_spent': hours_spent
+        'hours_spent': hours_spent,
+        'inventory_level': inventory_level,
+        'order_quantity': order_quantity,
+        'order_trigger': order_trigger
     }
 
     model.update()
