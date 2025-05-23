@@ -15,8 +15,8 @@ def add_constraints(model, sets, params, vars):
 
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles
-     ) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
+     spare_parts) = unpack_sets(sets)
 
     # Unpack parameters
     (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,

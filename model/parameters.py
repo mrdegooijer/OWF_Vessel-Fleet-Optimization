@@ -8,7 +8,7 @@ def create_parameters(data, sets, year):
     # Unpack sets
     (
         bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles
+        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts
     ) = unpack_sets(sets)
 
     # Set index for dataframes
