@@ -126,10 +126,14 @@ def unpack_variables(vars):
     tasks_not_performed = vars['tasks_not_performed']
     periods_late = vars['periods_late']
     hours_spent = vars['hours_spent']
+    inventory_level = vars['inventory_level']
+    order_quantity = vars['order_quantity']
+    order_trigger = vars['order_trigger']
 
     return (base_use, purchased_vessels, chartered_vessels, task_performed,
             bundle_performed, tasks_late, tasks_not_performed,
-            periods_late, hours_spent)
+            periods_late, hours_spent, inventory_level, order_quantity,
+            order_trigger)
 
 def return_charter_period(p, charter_dict):
     """

@@ -42,6 +42,17 @@ def create_variables(model, sets):
     hours_spent = model.addVars(bases, vessels, periods, tasks, vtype=GRB.INTEGER, name='hours_spent')
 
 
+    # Extension variables
+    #q_sbp
+    inventory_level = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="inventory_level")
+
+    #o_sbp
+    order_quantity = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
+
+    #o^trig_sbp
+    order_trigger = model.addVars(spare_parts, bases, periods, lb=0, ub=1, vtype=GRB.BINARY, name="order_trigger")
+
+
     vars = {
         'base_use': base_use,
         'purchased_vessels': purchased_vessels,
@@ -51,7 +62,10 @@ def create_variables(model, sets):
         'tasks_late': tasks_late,
         'tasks_not_performed': tasks_not_performed,
         'periods_late': periods_late,
-        'hours_spent': hours_spent
+        'hours_spent': hours_spent,
+        'inventory_level': inventory_level,
+        'order_quantity': order_quantity,
+        'order_trigger': order_trigger
     }
 
     model.update()

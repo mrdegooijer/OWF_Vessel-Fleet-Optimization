@@ -22,7 +22,8 @@ def add_objective_function(model, sets, params, vars):
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
-     periods_late, hours_spent) = unpack_variables(vars)
+     periods_late, hours_spent, inventory_level, order_quantity,
+     order_trigger) = unpack_variables(vars)
 
 
     # Objective function
