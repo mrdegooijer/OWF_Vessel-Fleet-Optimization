@@ -75,7 +75,7 @@ def create_variables(model, sets, params):
 
     for s in spare_parts:
         for b in bases:
-            inventory_level[s, b, 0] = 30
+            inventory_level[s, b, 0] = int(max_part_capacity[s, b])
 
     for s in spare_parts:
         for b in bases:

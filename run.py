@@ -33,8 +33,8 @@ def main():
     # Optimize the model
     model.optimize()
 
-    model.computeIIS()
-    model.write("infeasible.ilp")
+    # model.computeIIS()
+    # model.write("infeasible.ilp")
 
     # Print the results
     # if model.status == GRB.OPTIMAL:
