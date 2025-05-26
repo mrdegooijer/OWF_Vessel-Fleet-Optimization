@@ -108,7 +108,7 @@ def add_constraints(model, sets, params, vars):
     # Constraint 13: Downtime for corrective tasks (periods late)
     for p in periods:
         for m in corr_tasks:
-            model.addConstr(periods_late[p, m] == planned_corr_tasks.loc[m, p] - quicksum(task_performed[b, v, p, m] + periods_late[p-1, m] for b in bases for v in vessels), name=f"periods_late_{p},{m}")
+            model.addConstr(periods_late[p, m] == planned_corr_tasks.loc[m, p] - quicksum(task_performed[b, v, p, m] for b in bases for v in vessels) + get_periods_late(p-1, m, periods_late), name=f"periods_late_{p},{m}")
 
     # Constraint 14: Tasks performed from bundles
     for b in bases:
@@ -128,15 +128,10 @@ def add_constraints(model, sets, params, vars):
 
     # --- Constraints for extensions ---
     # Constraint 16: Inventory balance
-    # for s in spare_parts:
-    #     for b in bases:
-    #         for p in periods:
-    #             model.addConstr(inventory_level[s, b, p] == inventory_level[s, b, p-1] + order_quantity[s, b, int(p-lead_time[s])] - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
-
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, b, p] == get_inventory_level(s, b, p-1, inventory_level) + get_order_quantity(s, b, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
+                model.addConstr(inventory_level[s, b, p] == get_inventory_level(s, b, p-1, inventory_level, max_part_capacity) + get_order_quantity(s, b, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
 
     # Constraint 17: Parts required for maintenance tasks to take place
     for s in spare_parts:
@@ -150,12 +145,6 @@ def add_constraints(model, sets, params, vars):
         for b in bases:
             for p in periods:
                 model.addConstr(inventory_level[s, b, p] <= max_part_capacity[s, b], name=f"max_part_capacity_{s},{b},{p}")
-
-    # Constraint 19: Order trigger
-    # for s in spare_parts:
-    #     for b in bases:
-    #         for p in periods:
-    #             model.addConstr(inventory_level[s, b, p] + order_quantity[s, b, int(p - lead_time[s])] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_{s},{b},{p}")
 
     # Constraint 19.a: Order trigger activate
     for s in spare_parts:
@@ -175,5 +164,7 @@ def add_constraints(model, sets, params, vars):
         for b in bases:
             for p in periods:
                 model.addConstr(order_quantity[s, b, p] <= (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
+
+
 
     model.update()

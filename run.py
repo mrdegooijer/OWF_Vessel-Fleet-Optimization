@@ -34,8 +34,8 @@ def main():
     # Optimize the model
     model.optimize()
 
-    model.computeIIS()
-    model.write("infeasible.ilp")
+    # model.computeIIS()
+    # model.write("infeasible.ilp")
 
     # Print the results
     # if model.status == GRB.OPTIMAL:
@@ -56,7 +56,7 @@ def main():
     #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
 
     # Plot the inventory level of spare parts
-    # plot_parts_vars(vars, sets, input_data)
+    plot_parts_vars(vars, sets, input_data)
 
 if __name__ == "__main__":
     main()

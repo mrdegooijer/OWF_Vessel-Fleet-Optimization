@@ -70,8 +70,7 @@ def create_variables(model, sets, params):
                 task_performed[b, v, 0, m] = 0
                 hours_spent[b, v, 0, m] = 0
 
-    for m in tasks:
-        periods_late[0, m] = 0
+
 
 
 

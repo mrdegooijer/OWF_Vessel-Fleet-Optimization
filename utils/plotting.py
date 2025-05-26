@@ -15,8 +15,9 @@ def plot_parts_vars(vars, sets, data):
     for s in spare_parts:
         for b in bases:
             inv_series = [inv[s, b, p].X for p in periods]
-            order_series = [order_q[s, b, p] for p in periods]
+            order_series = [order_q[s, b, p].X for p in periods]
             trig_series = [order_trigger[s, b, p].X for p in periods]
+
 
             df = pd.DataFrame(
                 {
