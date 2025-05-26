@@ -2,6 +2,7 @@ from tkinter.font import nametofont
 
 from gurobipy import *
 from utils.utils import *
+from utils.initial_values import *
 
 def add_constraints(model, sets, params, vars):
     """
@@ -127,10 +128,15 @@ def add_constraints(model, sets, params, vars):
 
     # --- Constraints for extensions ---
     # Constraint 16: Inventory balance
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] == inventory_level[s, b, p-1] + order_quantity[s, b, int(p-lead_time[s])] - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
+
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, b, p] == inventory_level[s, b, p-1] + order_quantity[s, b, int(p-lead_time[s])] - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
+                model.addConstr(inventory_level[s, b, p] == get_inventory_level(s, b, p-1, inventory_level) + get_order_quantity(s, b, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
 
     # Constraint 17: Parts required for maintenance tasks to take place
     for s in spare_parts:
@@ -146,15 +152,28 @@ def add_constraints(model, sets, params, vars):
                 model.addConstr(inventory_level[s, b, p] <= max_part_capacity[s, b], name=f"max_part_capacity_{s},{b},{p}")
 
     # Constraint 19: Order trigger
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] + order_quantity[s, b, int(p - lead_time[s])] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_{s},{b},{p}")
+
+    # Constraint 19.a: Order trigger activate
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, b, p] + order_quantity[s, b, int(p - lead_time[s])] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_{s},{b},{p}")
+                model.addConstr(inventory_level[s, b, p] <= reorder_level[s, b] + big_m * (1 - order_trigger[s, b, p]), name=f"order_trigger_activate_{s},{b},{p}")
+
+    # Constraint 19.b: Order trigger deactivate
+    for s in spare_parts:
+        for b in bases:
+            for p in periods:
+                model.addConstr(inventory_level[s, b, p] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_deactivate_{s},{b},{p}")
+
 
     # Constraint 20: Order quantity
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(order_quantity[s, b, p] >= (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
+                model.addConstr(order_quantity[s, b, p] <= (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
 
     model.update()

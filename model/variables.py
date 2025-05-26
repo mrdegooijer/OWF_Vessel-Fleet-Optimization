@@ -73,14 +73,7 @@ def create_variables(model, sets, params):
     for m in tasks:
         periods_late[0, m] = 0
 
-    for s in spare_parts:
-        for b in bases:
-            inventory_level[s, b, 0] = int(max_part_capacity[s, b])
 
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                order_quantity[s, b, int(p-lead_time[s])] = 0
 
 
     vars = {
@@ -98,5 +91,9 @@ def create_variables(model, sets, params):
         'order_trigger': order_trigger
     }
 
+
+
+
     model.update()
     return vars
+
