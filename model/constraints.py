@@ -163,7 +163,7 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(order_quantity[s, b, p] <= (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
+                model.addConstr(order_quantity[s, b, p] == (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
 
 
 
