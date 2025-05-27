@@ -61,10 +61,12 @@ pre_tasks = [tasks[-1]]     # all preventive tasks
 cor_tasks = tasks[:2]       # all corrective tasks
 charter_periods = [periods[i:i+30] for i in range(0, len(periods), 30)]     # set of periods for chartering vessels
 
+
 def charter_period(y):      # returns the charter period for a certain period
     for i, x in enumerate(charter_periods):
         if y in x:
             return (i)
+
       
 bundle = []
 for i in range(4):
@@ -139,6 +141,8 @@ for v in vessels:
             x = sum(weather.loc[i,'Wave Height'] < df_vessels.loc[v, 'Hslimit'] for i in range((24*p-25), (24*p-1)))
         hoursavailable[v,p] = x
 
+
+
 # Cost downtime power curve
 cost_downtime = {}
 for p in periods:
@@ -212,6 +216,8 @@ for b in bases:
 model.update()
 
 # ---------------------------- Constraints ----------------------------               
+for p in range(len(charter_periods)):
+    print(p)
 
 #1 Base capacity for vessels
 con1 = {}
