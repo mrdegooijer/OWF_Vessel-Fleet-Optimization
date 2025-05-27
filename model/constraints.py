@@ -158,13 +158,11 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 model.addConstr(inventory_level[s, b, p] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_deactivate_{s},{b},{p}")
 
-
     # Constraint 20: Order quantity
     for s in spare_parts:
         for b in bases:
             for p in periods:
-                model.addConstr(order_quantity[s, b, p] == (max_part_capacity[s, b] - inventory_level[s, b, p]) * order_trigger[s, b, p], name=f"order_quantity_{s},{b},{p}")
-
-
+                model.addGenConstrIndicator(order_trigger[s, b, p], 1, order_quantity[s, b, p] == max_part_capacity[s, b] - inventory_level[s, b, p], name=f"order_quantity_{s},{b},{p}")
+                model.addGenConstrIndicator(order_trigger[s, b, p], 0, order_quantity[s, b, p] == 0, name=f"order_quantity_zero_{s},{b},{p}")
 
     model.update()
