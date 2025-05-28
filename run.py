@@ -40,6 +40,8 @@ def main():
     # Start the greedy construction
     # solution_vector = greedy_construction(model, sets, params, vars)
     solution_vector = greedy_construction_IV(model, sets, params, vars)
+    tabu_search()
+
 
 
 

@@ -6,20 +6,14 @@ def create_parameters(data, sets, year):
     :return: params
     """
     # Unpack sets
-    (
-        bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts
-    ) = unpack_sets(sets)
+    (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles) = unpack_sets(sets)
 
     # Set index for dataframes
     data['bases'].set_index('SET', inplace=True)
     data['vessels'].set_index('SET', inplace=True)
     data['capacity_base_vessels'].set_index(data['capacity_base_vessels'].columns[0], inplace=True)
-    data['spare_parts'].set_index('SET', inplace=True)
-    data['spare_parts_required'].set_index(data['spare_parts_required'].columns[0], inplace=True)
-    data['holding_costs'].set_index(data['holding_costs'].columns[0], inplace=True)
-    data['max_capacity'].set_index(data['max_capacity'].columns[0], inplace=True)
-    data['reorder_level'].set_index(data['reorder_level'].columns[0], inplace=True)
+
 
     # Cost Parameters
     cost_base_operation = data['bases']['cost']
@@ -70,28 +64,7 @@ def create_parameters(data, sets, year):
     # Weather Parameter
     weather_max_time_offshore = generate_availability_set(vessels, periods, year, data)
 
-    # Spare Parts Parameters
-    order_cost = data['spare_parts']['order_cost']
-    lead_time = data['spare_parts']['lead_time']
-    holding_cost = {
-        (s, b): data['holding_costs'].at[s, b]
-        for s in spare_parts for b in bases
-    }
-    parts_required = {
-        (m, s): data['spare_parts_required'].at[s, m]
-        for s in spare_parts for m in tasks
-    }
-    max_part_capacity = {
-        (s, b): data['max_capacity'].at[s, b]
-        for s in spare_parts for b in bases
-    }
-    reorder_level = {
-        (s, b): data['reorder_level'].at[s, b]
-        for s in spare_parts for b in bases
-    }
 
-    # Big-M parameter
-    big_M = 1e9
 
     # Create the parameters dictionary
     params = {
@@ -118,13 +91,6 @@ def create_parameters(data, sets, year):
         'tasks_in_bundles': tasks_in_bundles,
         'technicians_required_bundle': technicians_required_bundle,
         'weather_max_time_offshore': weather_max_time_offshore,
-        'order_cost': order_cost,
-        'lead_time': lead_time,
-        'holding_cost': holding_cost,
-        'parts_required': parts_required,
-        'max_part_capacity': max_part_capacity,
-        'reorder_level': reorder_level,
-        'big_m': big_M
     }
 
     return params

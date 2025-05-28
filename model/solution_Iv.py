@@ -4,7 +4,7 @@ from utils.solution_utils import *
 
 def greedy_construction_IV(model, sets, params, vars):
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles) = unpack_sets(sets)
 
     (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
      cost_vessel_operation, cost_technicians, cost_downtime,
@@ -13,14 +13,11 @@ def greedy_construction_IV(model, sets, params, vars):
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
      capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
      technicians_required_task, latest_period_to_perform_task,
-     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
-     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-     reorder_level, big_m) = unpack_parameters(params)
+     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore) = unpack_parameters(params)
 
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
-     periods_late, hours_spent, inventory_level, order_quantity,
-     order_trigger) = unpack_variables(vars)
+     periods_late, hours_spent) = unpack_variables(vars)
 
     # --- 1. --- Set all bases and vessels to zero
     for b in bases:
@@ -57,6 +54,7 @@ def greedy_construction_IV(model, sets, params, vars):
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
             print(f"Optimizing purchased vessels for base {b_opt}, vessel {v}, quantity {i}")
+            model.write('stuck_model.lp')
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
@@ -87,3 +85,24 @@ def greedy_construction_IV(model, sets, params, vars):
     print('Chartered vessels:',
           {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
 
+    # solution_vector = {
+    #     'base_use': {b: base_use[b].X for b in bases},
+    #     'purchased_vessels': {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases},
+    #     'chartered_vessels': {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases}
+    # }
+
+    ordered = flatten_decision_vars(model._Vars)
+    solution_vector['ordered'] = [x.X for x in ordered]
+
+    return solution_vector
+
+def tabu_search(solution_vector, sets, params, vars, model):
+
+    iteration = 0                       # initial solution
+    objective = {}                      # list of the minimum objective values
+    solution = {}                       # list of solution, consisting of number of purchased vessels, chartered vessels and bases used
+    it_objectives = {}                  # objective values for each neighbor at each iteration
+    tabu = []                           # list of tabu moves
+    solution[iteration] = []            # solution for each neighbor at each iteration
+
+    # for i in range(len(purchased_vessels) + len(chartered_vessels) + len(bases))
