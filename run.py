@@ -4,6 +4,7 @@ from model.parameters import create_parameters
 from model.variables import create_variables
 from model.constraints import add_constraints
 from model.objective import add_objective_function
+from utils.plotting import plot_parts_vars
 from model.solution import *
 from gurobipy import *
 
@@ -21,7 +22,7 @@ def main():
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
     params = create_parameters(input_data, sets, year)
-    vars = create_variables(model, sets)
+    vars = create_variables(model, sets, params)
     model.update()
 
     # Add constraints
@@ -45,7 +46,6 @@ def main():
     # model.computeIIS()
     # model.write("infeasible.ilp")
 
-
     # Print the results
     # if model.status == GRB.OPTIMAL:
     #     print("Optimal solution found:")
@@ -54,6 +54,18 @@ def main():
     #             print(f"{v.VarName}: {v.X}")
     # else:
     #     print("No optimal solution found.")
+
+    # Plot the results
+    # plot_parts_vars(vars, sets)
+    #print the inventory levels
+    # for s in sets['spare_parts']:
+    #     for b in sets['bases']:
+    #         for p in sets['periods']:
+    #             print(f"Inventory level of spare part {s} at base {b} in period {p}: {vars['inventory_level'][s, b, p].X}")
+    #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
+
+    # Plot the inventory level of spare parts
+    plot_parts_vars(vars, sets, input_data)
 
 if __name__ == "__main__":
     main()
