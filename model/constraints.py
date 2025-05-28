@@ -94,11 +94,11 @@ def add_constraints(model, sets, params, vars):
 
     # Constraint 10: Perform scheduled preventive tasks
     for m in prev_tasks:
-        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == planned_prev_tasks[m], name=f"perform_scheduled_preventive_tasks_{m}")
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods) + tasks_not_performed[m]  == planned_prev_tasks[m], name=f"perform_scheduled_preventive_tasks_{m}")
 
     # Constraint 11: Perform corrective tasks
     for m in corr_tasks:
-        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == quicksum(planned_corr_tasks.loc[m, p] for p in periods), name=f"perform_scheduled_corrective_tasks_{m}")
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods) + tasks_not_performed[m]  == quicksum(planned_corr_tasks.loc[m, p] for p in periods), name=f"perform_scheduled_corrective_tasks_{m}")
 
     # Constraint 12: Corrective tasks performed after failure
     for p in periods:
@@ -115,7 +115,8 @@ def add_constraints(model, sets, params, vars):
         for v in vessels:
             for p in periods:
                 for m in tasks:
-                    model.addConstr(task_performed[b, v, p, m] <= quicksum(tasks_in_bundles[m, k] * bundle_performed[b, v, p, k] for k in bundles), name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
+                    # model.addConstr(task_performed[b, v, p, m] <= quicksum(tasks_in_bundles[m, k] * bundle_performed[b, v, p, k] for k in bundles), name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
+                    model.addConstr(quicksum(tasks_in_bundles[m, k] * bundle_performed[b, v, p, k] for k in bundles) >= task_performed[b, v, p, m], name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
 
     # Constraint 15: Time spent on tasks
     for b in bases:
@@ -127,42 +128,42 @@ def add_constraints(model, sets, params, vars):
 
 
     # --- Constraints for extensions ---
-    # Constraint 16: Inventory balance
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                model.addConstr(inventory_level[s, b, p] == get_inventory_level(s, b, p-1, inventory_level, max_part_capacity) + get_order_quantity(s, b, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
-
-    # Constraint 17: Parts required for maintenance tasks to take place
-    for s in spare_parts:
-        for m in tasks:
-            for p in periods:
-                for b in bases:
-                    model.addConstr(quicksum(parts_required[m, s] * task_performed[b, v, p, m] for v in vessels) <= inventory_level[s, b, p], name=f"parts_required_for_maintenance_tasks_{s},{m},{p}")
-
-    # Constraint 18: Maximum part capacity
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                model.addConstr(inventory_level[s, b, p] <= max_part_capacity[s, b], name=f"max_part_capacity_{s},{b},{p}")
-
-    # Constraint 19.a: Order trigger activate
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                model.addConstr(inventory_level[s, b, p] <= reorder_level[s, b] + big_m * (1 - order_trigger[s, b, p]), name=f"order_trigger_activate_{s},{b},{p}")
-
-    # Constraint 19.b: Order trigger deactivate
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                model.addConstr(inventory_level[s, b, p] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_deactivate_{s},{b},{p}")
-
-    # Constraint 20: Order quantity
-    for s in spare_parts:
-        for b in bases:
-            for p in periods:
-                model.addGenConstrIndicator(order_trigger[s, b, p], 1, order_quantity[s, b, p] == max_part_capacity[s, b] - inventory_level[s, b, p], name=f"order_quantity_{s},{b},{p}")
-                model.addGenConstrIndicator(order_trigger[s, b, p], 0, order_quantity[s, b, p] == 0, name=f"order_quantity_zero_{s},{b},{p}")
+    # # Constraint 16: Inventory balance
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] == get_inventory_level(s, b, p-1, inventory_level, max_part_capacity) + get_order_quantity(s, b, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[b, v, p, m] for m in tasks for v in vessels), name=f"inventory_balance_{s},{b},{p}")
+    #
+    # # Constraint 17: Parts required for maintenance tasks to take place
+    # for s in spare_parts:
+    #     for m in tasks:
+    #         for p in periods:
+    #             for b in bases:
+    #                 model.addConstr(quicksum(parts_required[m, s] * task_performed[b, v, p, m] for v in vessels) <= inventory_level[s, b, p], name=f"parts_required_for_maintenance_tasks_{s},{m},{p}")
+    #
+    # # Constraint 18: Maximum part capacity
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] <= max_part_capacity[s, b], name=f"max_part_capacity_{s},{b},{p}")
+    #
+    # # Constraint 19.a: Order trigger activate
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] <= reorder_level[s, b] + big_m * (1 - order_trigger[s, b, p]), name=f"order_trigger_activate_{s},{b},{p}")
+    #
+    # # Constraint 19.b: Order trigger deactivate
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addConstr(inventory_level[s, b, p] >= reorder_level[s, b] - big_m * order_trigger[s, b, p], name=f"order_trigger_deactivate_{s},{b},{p}")
+    #
+    # # Constraint 20: Order quantity
+    # for s in spare_parts:
+    #     for b in bases:
+    #         for p in periods:
+    #             model.addGenConstrIndicator(order_trigger[s, b, p], 1, order_quantity[s, b, p] == max_part_capacity[s, b] - inventory_level[s, b, p], name=f"order_quantity_{s},{b},{p}")
+    #             model.addGenConstrIndicator(order_trigger[s, b, p], 0, order_quantity[s, b, p] == 0, name=f"order_quantity_zero_{s},{b},{p}")
 
     model.update()

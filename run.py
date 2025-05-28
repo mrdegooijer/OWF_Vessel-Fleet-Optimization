@@ -6,6 +6,7 @@ from model.constraints import add_constraints
 from model.objective import add_objective_function
 from utils.plotting import plot_parts_vars
 from model.solution import *
+from model.solution_Iv import *
 from gurobipy import *
 
 
@@ -37,8 +38,8 @@ def main():
 
 
     # Start the greedy construction
-    solution_vector = greedy_construction(model, sets, params, vars)
-
+    # solution_vector = greedy_construction(model, sets, params, vars)
+    solution_vector = greedy_construction_IV(model, sets, params, vars)
 
 
 
@@ -65,7 +66,7 @@ def main():
     #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
 
     # Plot the inventory level of spare parts
-    plot_parts_vars(vars, sets, input_data)
+    # plot_parts_vars(vars, sets, input_data)
 
 if __name__ == "__main__":
     main()

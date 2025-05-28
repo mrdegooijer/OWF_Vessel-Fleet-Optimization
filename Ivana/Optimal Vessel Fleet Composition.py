@@ -272,37 +272,37 @@ for b in bases:
         for p in periods: 
             con8[b,v,p] = model.addConstr( quicksum( hours_worked[b,v,p,m] for m in tasks) <= quicksum( bundle_performed[b,v,p,k] * ( len(bundles[k]) * ( max(hoursavailable[v,p], 2 * (df_vessels.loc[v, 'transfer_time']/60) * ( 1 + (len(bundles[k])-1) / 2 ) ) - 2 * (df_vessels.loc[v, 'transfer_time']/60) * ( 1 + (len(bundles[k])-1) / 2 ) )- 2 * (df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed']))) for k in range(len(bundles))) )
 
-#0 Vessel compatibility
+#9 Vessel compatibility
 con9 = {}
 for v in vessels:
     for m in vessel_task_incomp[v]:
         con9[v,m] = model.addConstr( quicksum(hours_worked[b,v,p,m] for b in bases for p in periods) == 0 )
  
 
-#9 Perform scheduled preventive tasks
+#10 Perform scheduled preventive tasks
 con10 = {}
 for m in pre_tasks:
     con10[m] = model.addConstr( quicksum( task_performed[b,v,p,m] for b in bases for v in vessels for p in periods ) + task_not_performed[m] == scheduled_pre_tasks[m]  )
 
 
-#10 Perform corrective maintenance tasks
+#11 Perform corrective maintenance tasks
 con11 = {}
 for m in cor_tasks:
     con11[m] = model.addConstr( quicksum( task_performed[b,v,p,m] for b in bases for v in vessels for p in periods ) + task_not_performed[m] == quicksum( daily_failures.loc[m,p] for p in periods ) )
 
-#11 Corrective task performed after failure
+#12 Corrective task performed after failure
 con12 = {}
 for m in cor_tasks:
     for p in periods:
         con12[p,m] = model.addConstr( quicksum( task_performed[b,v,p,m] for b in bases for v in vessels ) <= quicksum( daily_failures.loc[m,q] for q in range(1,p+1)) - quicksum(task_performed[b,v,q,m] for b in bases for v in vessels for q in range(1,p)))
 
-#12 Downtime for corrective maintenance tasks
+#13 Downtime for corrective maintenance tasks
 con13 = {}
 for m in cor_tasks:
     for p in periods:
         con13[p,m] = model.addConstr( days_late[p,m] == daily_failures.loc[m,p] - quicksum(task_performed[b,v,p,m] for b in bases for v in vessels) + days_late[p-1,m] )
 
-#13 Tasks performed form bundles
+#14 Tasks performed form bundles
 con14 = {}
 for b in bases:
     for v in vessels:
@@ -395,6 +395,13 @@ for v in vessels:
  
 model.optimize()
 
+# Print the solution
+print("Objective value Greedy:", model.objVal)
+
+print('Base use:', {b: base_used[b].X for b in bases})
+print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
+print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
+exit()
 # ---------------------------- Tabu search ----------------------------
 
 iteration = 0               # initial solution

@@ -1,8 +1,8 @@
 
 
-def get_inventory_level(s, b, p, inventory_level, max_part_capcity):
+def get_inventory_level(s, b, p, inventory_level, max_part_capacity):
     if p == 0:
-        return int(max_part_capcity[s, b])
+        return int(max_part_capacity[s, b])
     else:
         return inventory_level[s, b, p]
 
