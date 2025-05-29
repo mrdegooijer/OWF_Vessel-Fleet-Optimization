@@ -337,7 +337,7 @@ model.setParam( 'NonConvex', 2)
 model.setParam ('MIPGap', 0);
 
 model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vessels + Cost_operations + Cost_technicians + Cost_downtime_pretasks + Cost_penalties + Cost_downtime_cortasks)
-
+model.write("model_Ivana.lp")
 # ---------------------------- Greedy construction algorithm ----------------------------
 
 # Set all bases and vessels to zero

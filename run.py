@@ -35,7 +35,7 @@ def main():
 
     # Optimize the model
     # model.optimize()
-
+    model.write("model_deGooijer.lp")
 
     # Start the greedy construction
     # solution_vector = greedy_construction(model, sets, params, vars)

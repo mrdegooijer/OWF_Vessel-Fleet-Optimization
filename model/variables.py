@@ -38,7 +38,7 @@ def create_variables(model, sets, params):
     periods_late = model.addVars(periods, corr_tasks, lb=0, vtype=GRB.INTEGER, name="periods_late")
 
     #r_bvpm
-    hours_spent = model.addVars(bases, vessels, periods, tasks, lb=0, vtype=GRB.INTEGER, name='hours_spent')
+    hours_spent = model.addVars(bases, vessels, periods, tasks, lb=0, vtype=GRB.CONTINUOUS, name='hours_spent')
 
 
 

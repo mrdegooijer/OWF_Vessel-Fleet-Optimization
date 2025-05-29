@@ -54,7 +54,7 @@ def greedy_construction_IV(model, sets, params, vars):
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
             print(f"Optimizing purchased vessels for base {b_opt}, vessel {v}, quantity {i}")
-            model.write('stuck_model.lp')
+
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal

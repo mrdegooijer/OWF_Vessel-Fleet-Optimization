@@ -178,3 +178,5 @@ cython_debug/
 *.pyo
 .DS_Store
 /infeasible.ilp
+/model_deGooijer.lp
+/Ivana/model_Ivana.lp
