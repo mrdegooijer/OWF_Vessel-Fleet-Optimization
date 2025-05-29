@@ -85,18 +85,11 @@ def greedy_construction_IV(model, sets, params, vars):
     print('Chartered vessels:',
           {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
 
-    # solution_vector = {
-    #     'base_use': {b: base_use[b].X for b in bases},
-    #     'purchased_vessels': {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases},
-    #     'chartered_vessels': {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases}
-    # }
-
-    ordered = flatten_decision_vars(model._Vars)
-    solution_vector['ordered'] = [x.X for x in ordered]
-
-    return solution_vector
-
-def tabu_search(solution_vector, sets, params, vars, model):
+    solution_vector = {
+        'base_use': {b: base_use[b].X for b in bases},
+        'purchased_vessels': {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases},
+        'chartered_vessels': {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases}
+    }
 
     iteration = 0                       # initial solution
     objective = {}                      # list of the minimum objective values
