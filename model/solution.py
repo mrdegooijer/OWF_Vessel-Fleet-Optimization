@@ -95,7 +95,5 @@ def greedy_construction(model, sets, params, vars):
     print('Chartered vessels:', {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
 
 
-    ordered = flatten_decision_vars(model._Vars)
-    solution_vector = [x.X for x in ordered]
 
-    return solution_vector
+

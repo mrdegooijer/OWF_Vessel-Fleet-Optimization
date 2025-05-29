@@ -2,7 +2,7 @@ from gurobipy import *
 from utils.utils import *
 from utils.solution_utils import *
 
-def greedy_construction_IV(model, sets, params, vars):
+def GRASP(model, sets, params, vars):
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts) = unpack_sets(sets)
 
@@ -81,9 +81,9 @@ def greedy_construction_IV(model, sets, params, vars):
 
     # --- 5. --- Return the initial solution vector
     model.optimize()
-    print('Objective value:', model.objVal)
-    print('Base use:', {b: base_use[b].X for b in bases})
-    print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
-    print('Chartered vessels:',
-          {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
+    # print('Objective value:', model.objVal)
+    # print('Base use:', {b: base_use[b].X for b in bases})
+    # print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
+    # print('Chartered vessels:',
+    #       {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
 

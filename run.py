@@ -6,7 +6,7 @@ from model.constraints import add_constraints
 from model.objective import add_objective_function
 from utils.plotting import plot_parts_vars
 from model.solution import *
-from model.solution_Iv import *
+from model.GRASP import *
 from gurobipy import *
 
 
@@ -39,7 +39,7 @@ def main():
 
     # Start the greedy construction
     # solution_vector = greedy_construction(model, sets, params, vars)
-    solution_vector = greedy_construction_IV(model, sets, params, vars)
+    solution = GRASP(model, sets, params, vars)
 
 
 
@@ -47,23 +47,7 @@ def main():
     # model.computeIIS()
     # model.write("infeasible.ilp")
 
-    # Print the results
-    # if model.status == GRB.OPTIMAL:
-    #     print("Optimal solution found:")
-    #     for v in model.getVars():
-    #         if v.X > 0:
-    #             print(f"{v.VarName}: {v.X}")
-    # else:
-    #     print("No optimal solution found.")
 
-    # Plot the results
-    # plot_parts_vars(vars, sets)
-    #print the inventory levels
-    # for s in sets['spare_parts']:
-    #     for b in sets['bases']:
-    #         for p in sets['periods']:
-    #             print(f"Inventory level of spare part {s} at base {b} in period {p}: {vars['inventory_level'][s, b, p].X}")
-    #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
 
     # Plot the inventory level of spare parts
     # plot_parts_vars(vars, sets, input_data)
