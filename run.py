@@ -1,3 +1,8 @@
+"""
+@author: Mischa de Gooijer
+@date: 2025
+"""
+
 from utils.utils import load_input_data
 from model.sets import create_sets
 from model.parameters import create_parameters
@@ -8,9 +13,13 @@ from utils.plotting import plot_parts_vars
 from model.solution import *
 from model.GRASP import *
 from gurobipy import *
+import time
 
 
 def main():
+    # Initiate time tracking
+    start_time = time.time()
+
     # Load input data
     file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
@@ -37,9 +46,8 @@ def main():
     # model.optimize()
 
 
-    # Start the greedy construction
-    # solution_vector = greedy_construction(model, sets, params, vars)
-    solution = GRASP(model, sets, params, vars)
+
+    solution = GRASP(model, sets, params, vars, start_time)
 
 
 

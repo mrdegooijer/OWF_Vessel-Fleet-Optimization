@@ -396,12 +396,12 @@ for v in vessels:
 model.optimize()
 
 # Print the solution
-print("Objective value Greedy:", model.objVal)
-
-print('Base use:', {b: base_used[b].X for b in bases})
-print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
-print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
-exit()
+# print("Objective value Greedy:", model.objVal)
+#
+# print('Base use:', {b: base_used[b].X for b in bases})
+# print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
+# print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
+# exit()
 # ---------------------------- Tabu search ----------------------------
 
 iteration = 0               # initial solution
@@ -411,7 +411,7 @@ it_objectives = {}          # objective values for each neighbor at each iterati
 tabu = []                   # list of tabu moves
 solution[iteration] = []    # solution for each neighbor at each iteration
 for i in range(len(purchased_vessel)+len(chartered_vessel)+len(bases)):
-    solution[iteration].append(model.getVarByName("C"+str(i)).x)    
+    solution[iteration].append(model.getVarByName("C"+str(i)).x)
 
 objective[iteration] = model.objVal
 best_objective_so_far = []
@@ -460,7 +460,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
                         nb[l] += 1
                         neighbors.append(nb.copy())
                         it_move.append('switch '+str(b)+bases[k]+str(v))
-    
+    print('Neighbors for purchased vessels:', len(neighbors))
     # neighbors for chartered vessels
     for b in bases:
         for v in vessels:
@@ -510,7 +510,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
                             nb[n] += 1
                             neighbors.append(nb.copy())
                             it_move.append('switch '+str(b)+bases[m]+str(v)+str(p))
-    
+    print('Neighbors for purchased and chartered vessels:', len(neighbors))
     # neighbors for bases
     for b in bases:
         i = len(purchased_vessel) + len(chartered_vessel) + bases.index(b)
@@ -544,7 +544,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
                     nb[i] = 0
                     neighbors.append(nb.copy())
                     it_move.append('switch '+str(b)+bases[l])
-    
+    print('Neighbors for bases:', len(neighbors))
     # Delete neighbors that have already been considered
     existing = []
     for o in range(len(neighbors)):
@@ -554,7 +554,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
     for i in range(len(existing)):
         if existing[i] in neighbors:
             neighbors.remove(existing[i])
-    
+    print('Total neighbors:', len(neighbors))
     # Calculate objective values for neighbors
     it_objectives[iteration] = []
     for x in neighbors:
@@ -579,7 +579,9 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
     solution[iteration] = neighbors[it_objectives[iteration].index(min(it_objectives[iteration]))]
     objective[iteration] = min(it_objectives[iteration])
     best_objective_so_far.append(min(objective[o] for o in range(iteration)))
-    tabu.append(it_move[it_objectives[iteration].index(min(it_objectives[iteration]))])
+
+    tabu_addition = it_move[it_objectives[iteration].index(min(it_objectives[iteration]))]
+    tabu.append(tabu_addition)
     
     # stopping criteria if no improvements in objective value have been found
     if iteration > 3:
