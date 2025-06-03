@@ -634,8 +634,7 @@ print('The costs due to downtime are: %.2f' % (C_downtime_cortasks+C_downtime_pr
 print('The costs for downtime preventive tasks are: %.2f' % C_downtime_pretasks)
 print('The costs for downtime corrective tasks are: %.2f' % C_downtime_cortasks)
 print('The costs for penalties are: %.2f' % C_penalties)
-print('The costs for penalties due to late tasks are: %.2f' % C_penalties_late)
-print('The costs for penalties due to not performed tasks are: %.2f' % C_penalties_not_performed)
+
 print('costs for operations mathmodel: %.2f' % Cost_operations_mathmodel)
 
 
