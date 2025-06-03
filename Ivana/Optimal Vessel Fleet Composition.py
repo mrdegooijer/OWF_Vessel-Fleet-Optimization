@@ -341,260 +341,258 @@ model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vesse
 
 
 # ---------------------------- Greedy construction algorithm ----------------------------
-#
-# # Set all bases and vessels to zero
-# for b in bases:
-#     base_used[b].ub = 0
-#     for v in vessels:
-#         purchased_vessel[b,v].ub = 0
-#         for p in range(len(charter_periods)):
-#             chartered_vessel[b,v,p].ub = 0
-#
-# # Choose optimal bases
-# obj_value_b = {}
-# for b in bases:
-#     obj_value_b[b] = []
-#     base_used[b].lb = 1
-#     base_used[b].ub = 1
-#     model.optimize()
-#     if model.status == GRB.Status.OPTIMAL:
-#         obj_value_b[b] = model.objVal
-#
-# for b in bases:
-#     base_used[b].lb = 0
-#     base_used[b].ub = 0
-# base_used[min(obj_value_b, key=obj_value_b.get)].lb = 1
-# base_used[min(obj_value_b, key=obj_value_b.get)].ub = 1
-#
-# # Choose optimal fleet of purchased vessels
-# obj_value_pv = {}
-# for v in vessels:
-#     obj_value_pv[v] = {}
-#     for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc[min(obj_value_b, key=obj_value_b.get),v])+1):
-#        obj_value_pv[v][i] = []
-#        purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].ub = i
-#        purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].lb = i
-#        model.optimize()
-#        if model.status == GRB.Status.OPTIMAL:
-#            obj_value_pv[v][i] = model.objVal
-#     purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
-#     purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
-#
-# # Choose optimal fleet of chartered vessels
-# obj_value_cv = {}
-# for v in vessels:
-#     obj_value_cv[v] = {}
-#     for p in range(len(charter_periods)):
-#         obj_value_cv[v][p] = {}
-#         for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc[min(obj_value_b, key=obj_value_b.get),v])+1-min(obj_value_pv[v], key=obj_value_pv[v].get)):
-#             obj_value_cv[v][p][i] = []
-#             chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].ub = i
-#             chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].lb = i
-#             model.optimize()
-#             obj_value_cv[v][p][i] = model.objVal
-#         chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
-#         chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
-#
-# model.optimize()
-#
-# # Print the solution
-# # print("Objective value Greedy:", model.objVal)
-# #
-# # print('Base use:', {b: base_used[b].X for b in bases})
-# # print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
-# # print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
-# # exit()
-# # ---------------------------- Tabu search ----------------------------
-#
-# iteration = 0               # initial solution
-# objective = {}              # list of the minimum objective values
-# solution = {}               # list of solution, consisting of number of purchased vessels, chartered vessels and bases used
-# it_objectives = {}          # objective values for each neighbor at each iteration
-# tabu = []                   # list of tabu moves
-# solution[iteration] = []    # solution for each neighbor at each iteration
-# for i in range(len(purchased_vessel)+len(chartered_vessel)+len(bases)):
-#     solution[iteration].append(model.getVarByName("C"+str(i)).x)
-#
-# objective[iteration] = model.objVal
-# best_objective_so_far = []
-# it_objectives[iteration] = [model.objVal]
-# iteration = 1               # start of the iterations
-# max_it = 15                 # maximum number of iterations
-# while iteration < max_it and time.time() - start_time < 3600:        # stopping criteria
-#     neighbors = []                  # list of neighbors of the current solution
-#     sol = solution[iteration-1]     # current solution
-#     it_move = []                    # move that results in the neighbor
-#
-#     # neighbors for purchased vessels
-#     for b in bases:
-#         for v in vessels:
-#             i = bases.index(b)*len(vessels) + vessels.index(v)
-#             # add a purchased vessel
-#             nb = sol.copy()
-#             if nb[i] < base_cap_vessels.loc[b,v] and 'add '+str(b)+str(v) not in tabu:
-#                 nb[i] += 1
-#                 neighbors.append(nb.copy())
-#                 it_move.append('remove '+str(b)+str(v))
-#
-#             if sol[i] > 0.5:
-#                 # remove a purchased vessel
-#                 if 'remove '+str(b)+str(v) not in tabu:
-#                     nb = sol.copy()
-#                     nb[i] -= 1
-#                     neighbors.append(nb.copy())
-#                     it_move.append('add '+str(b)+str(v))
-#
-#                 nb = sol.copy()
-#                 for j in range(len(vessels)):
-#                     if j != i and nb[j] < base_cap_vessels.loc[b,vessels[j]] and 'switch '+str(b)+vessels[j]+str(v) not in tabu:
-#                         # change type of a purchased vessel
-#                         nb[i] -= 1
-#                         nb[j] += 1
-#                         neighbors.append(nb.copy())
-#                         it_move.append('switch '+str(b)+str(v)+vessels[j])
-#
-#                 nb = sol.copy()
-#                 for k in range(len(bases)):
-#                     l = (k-bases.index(b))*len(purchased_vessel) + i
-#                     if k != bases.index(b) and nb[l] < base_cap_vessels.loc[b,vessels[l-(k*len(purchased_vessel))]] and 'switch '+bases[k]+str(b)+str(v) not in tabu:
-#                         # change base of a purchased vessel
-#                         nb[i] -= 1
-#                         nb[l] += 1
-#                         neighbors.append(nb.copy())
-#                         it_move.append('switch '+str(b)+bases[k]+str(v))
-#     print('Neighbors for purchased vessels:', len(neighbors))
-#     # neighbors for chartered vessels
-#     for b in bases:
-#         for v in vessels:
-#             for p in range(len(charter_periods)):
-#                 i = len(purchased_vessel) + bases.index(b)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + p
-#                 # add a chartered vessel
-#                 nb = sol.copy()
-#                 if nb[i] < base_cap_vessels.loc[b,v] and 'add '+str(b)+str(v)+str(p) not in tabu:
-#                     nb[i] += 1
-#                     neighbors.append(nb.copy())
-#                     it_move.append('remove '+str(b)+str(v)+str(p))
-#
-#                 if sol[i] > 0.5:
-#                     # remove a chartered vessel
-#                     if 'remove '+str(b)+str(v)+str(p) not in tabu:
-#                         nb = sol.copy()
-#                         nb[i] -= 1
-#                         neighbors.append(nb.copy())
-#                         it_move.append('add '+str(b)+str(v)+str(p))
-#
-#                     # change type of a chartered vessel in the same period
-#                     nb = sol.copy()
-#                     for j in range(len(vessels)):
-#                         k = (j-vessels.index(v))*len(charter_periods) + i
-#                         if j != vessels.index(v) and nb[k] < base_cap_vessels.loc[b,vessels[j]] and 'switch '+str(b)+vessels[j]+str(v)+str(p) not in tabu:
-#                             nb[i] -= 1
-#                             nb[j] += 1
-#                             neighbors.append(nb.copy())
-#                             it_move.append('switch '+str(b)+str(v)+vessels[j]+str(p))
-#
-#                     # change the period of a chartered vessel
-#                     nb = sol.copy()
-#                     for l in range(len(charter_periods)):
-#                         m = i + (l-p)
-#                         if l != p and nb[m] < base_cap_vessels.loc[b,v] and 'switch '+str(b)+str(v)+str(l)+str(p) not in tabu:
-#                             nb[i] -= 1
-#                             nb[m] += 1
-#                             neighbors.append(nb.copy())
-#                             it_move.append('switch '+str(b)+str(v)+str(p)+str(l))
-#
-#                     # change base of a chartered vessel
-#                     nb = sol.copy()
-#                     for m in range(len(bases)):
-#                         n = (m-bases.index(b))*len(vessels)*len(charter_periods) + i
-#                         if m != bases.index(b) and nb[n] < base_cap_vessels.loc[bases[m],v] and 'switch '+bases[m]+str(b)+str(v)+str(p) not in tabu:
-#                             nb[i] -= 1
-#                             nb[n] += 1
-#                             neighbors.append(nb.copy())
-#                             it_move.append('switch '+str(b)+bases[m]+str(v)+str(p))
-#     print('Neighbors for purchased and chartered vessels:', len(neighbors))
-#     # neighbors for bases
-#     for b in bases:
-#         i = len(purchased_vessel) + len(chartered_vessel) + bases.index(b)
-#         j = bases.index(b)*len(vessels)
-#         k = len(bases)*len(vessels) + bases.index(b)*len(vessels)*len(charter_periods)
-#
-#         # remove base + vessels
-#         nb = sol.copy()
-#         if nb[i] > 0.5:
-#             nb[i] = 0
-#             for l in range(j, j+len(vessels)):
-#                 nb[l] = 0
-#             for m in range(k, k+len(vessels)*len(charter_periods)):
-#                 nb[m] = 0
-#             neighbors.append(nb.copy())
-#             it_move.append('remove '+str(b))
-#
-#         # replace base and vessels with another base
-#         nb = sol.copy()
-#         if nb[i] > 0.5:
-#             for l in range(len(bases)):
-#                 if l != bases.index(b) and nb[len(purchased_vessel) + len(chartered_vessel) + l] < 0.5 and 'switch '+bases[l]+str(b) not in tabu:
-#                     for x in range(l*len(vessels),(l+1)*len(vessels)):
-#                         nb[x] = nb[x-(l-bases.index(b))*len(vessels)]
-#                         nb[x-(l-bases.index(b))*len(vessels)] = 0
-#                     m = len(bases)*len(vessels) + l*len(vessels)*len(charter_periods)
-#                     for y in range(m, m + len(vessels)*len(charter_periods)):
-#                         nb[y] = nb[y-(l-bases.index(b))*(len(vessels)*len(charter_periods))]
-#                         nb[y-(l-bases.index(b))*(len(vessels)*len(charter_periods))] = 0
-#                     nb[len(purchased_vessel) + len(chartered_vessel) + l] = 1
-#                     nb[i] = 0
-#                     neighbors.append(nb.copy())
-#                     it_move.append('switch '+str(b)+bases[l])
-#     print('Neighbors for bases:', len(neighbors))
-#     # Delete neighbors that have already been considered
-#     existing = []
-#     for o in range(len(neighbors)):
-#         for i in solution:
-#             if neighbors[o] == solution[i]:
-#                 existing.append(neighbors[o])
-#     for i in range(len(existing)):
-#         if existing[i] in neighbors:
-#             neighbors.remove(existing[i])
-#     print('Total neighbors:', len(neighbors))
-#     # Calculate objective values for neighbors
-#     it_objectives[iteration] = []
-#     for x in neighbors:
-#         for b in bases:
-#             l = len(purchased_vessel)+len(chartered_vessel) + bases.index(b)
-#             base_used[b].lb = x[l]
-#             base_used[b].lb = x[l]
-#             for v in vessels:
-#                 i = bases.index(b)*len(vessels) + vessels.index(v)
-#                 purchased_vessel[b,v].lb = x[i]
-#                 purchased_vessel[b,v].ub = x[i]
-#                 for p in range(len(charter_periods)):
-#                     j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p + len(purchased_vessel)
-#                     chartered_vessel[b,v,p].lb = x[j]
-#                     chartered_vessel[b,v,p].ub = x[j]
-#         model.optimize()
-#         if model.status == GRB.Status.OPTIMAL:
-#             it_objectives[iteration].append(model.objVal)
-#         else:
-#             it_objectives[iteration].append(10000000000)
-#
-#     solution[iteration] = neighbors[it_objectives[iteration].index(min(it_objectives[iteration]))]
-#     objective[iteration] = min(it_objectives[iteration])
-#     best_objective_so_far.append(min(objective[o] for o in range(iteration)))
-#
-#     tabu_addition = it_move[it_objectives[iteration].index(min(it_objectives[iteration]))]
-#     tabu.append(tabu_addition)
-#
-#     # stopping criteria if no improvements in objective value have been found
-#     if iteration > 3:
-#         if objective[iteration-1] > min(best_objective_so_far) and objective[iteration-2] > min(best_objective_so_far) and objective[iteration] > min(best_objective_so_far):
-#             iteration += max_it
-#
-#     iteration += 1
-#
-# final_objective = min(objective[i] for i in range(len(objective)))      # the resulting objective value
-# final_solution = solution[min(objective, key=objective.get)]            # the resulting solution corresponding to the objective value
-final_solution = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+# Set all bases and vessels to zero
+for b in bases:
+    base_used[b].ub = 0
+    for v in vessels:
+        purchased_vessel[b,v].ub = 0
+        for p in range(len(charter_periods)):
+            chartered_vessel[b,v,p].ub = 0
+
+# Choose optimal bases
+obj_value_b = {}
+for b in bases:
+    obj_value_b[b] = []
+    base_used[b].lb = 1
+    base_used[b].ub = 1
+    model.optimize()
+    if model.status == GRB.Status.OPTIMAL:
+        obj_value_b[b] = model.objVal
+
+for b in bases:
+    base_used[b].lb = 0
+    base_used[b].ub = 0
+base_used[min(obj_value_b, key=obj_value_b.get)].lb = 1
+base_used[min(obj_value_b, key=obj_value_b.get)].ub = 1
+
+# Choose optimal fleet of purchased vessels
+obj_value_pv = {}
+for v in vessels:
+    obj_value_pv[v] = {}
+    for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc[min(obj_value_b, key=obj_value_b.get),v])+1):
+       obj_value_pv[v][i] = []
+       purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].ub = i
+       purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].lb = i
+       model.optimize()
+       if model.status == GRB.Status.OPTIMAL:
+           obj_value_pv[v][i] = model.objVal
+    purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
+    purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
+
+# Choose optimal fleet of chartered vessels
+obj_value_cv = {}
+for v in vessels:
+    obj_value_cv[v] = {}
+    for p in range(len(charter_periods)):
+        obj_value_cv[v][p] = {}
+        for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc[min(obj_value_b, key=obj_value_b.get),v])+1-min(obj_value_pv[v], key=obj_value_pv[v].get)):
+            obj_value_cv[v][p][i] = []
+            chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].ub = i
+            chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].lb = i
+            model.optimize()
+            obj_value_cv[v][p][i] = model.objVal
+        chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
+        chartered_vessel[min(obj_value_b, key=obj_value_b.get),v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
+
+model.optimize()
+
+# Print the solution
+print("Objective value Greedy:", model.objVal)
+
+print('Base use:', {b: base_used[b].X for b in bases})
+print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
+print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
+exit()
+# ---------------------------- Tabu search ----------------------------
+
+iteration = 0               # initial solution
+objective = {}              # list of the minimum objective values
+solution = {}               # list of solution, consisting of number of purchased vessels, chartered vessels and bases used
+it_objectives = {}          # objective values for each neighbor at each iteration
+tabu = []                   # list of tabu moves
+solution[iteration] = []    # solution for each neighbor at each iteration
+for i in range(len(purchased_vessel)+len(chartered_vessel)+len(bases)):
+    solution[iteration].append(model.getVarByName("C"+str(i)).x)
+
+objective[iteration] = model.objVal
+best_objective_so_far = []
+it_objectives[iteration] = [model.objVal]
+iteration = 1               # start of the iterations
+max_it = 15                 # maximum number of iterations
+while iteration < max_it and time.time() - start_time < 3600:        # stopping criteria
+    neighbors = []                  # list of neighbors of the current solution
+    sol = solution[iteration-1]     # current solution
+    it_move = []                    # move that results in the neighbor
+
+    # neighbors for purchased vessels
+    for b in bases:
+        for v in vessels:
+            i = bases.index(b)*len(vessels) + vessels.index(v)
+            # add a purchased vessel
+            nb = sol.copy()
+            if nb[i] < base_cap_vessels.loc[b,v] and 'add '+str(b)+str(v) not in tabu:
+                nb[i] += 1
+                neighbors.append(nb.copy())
+                it_move.append('remove '+str(b)+str(v))
+
+            if sol[i] > 0.5:
+                # remove a purchased vessel
+                if 'remove '+str(b)+str(v) not in tabu:
+                    nb = sol.copy()
+                    nb[i] -= 1
+                    neighbors.append(nb.copy())
+                    it_move.append('add '+str(b)+str(v))
+
+                nb = sol.copy()
+                for j in range(len(vessels)):
+                    if j != i and nb[j] < base_cap_vessels.loc[b,vessels[j]] and 'switch '+str(b)+vessels[j]+str(v) not in tabu:
+                        # change type of a purchased vessel
+                        nb[i] -= 1
+                        nb[j] += 1
+                        neighbors.append(nb.copy())
+                        it_move.append('switch '+str(b)+str(v)+vessels[j])
+
+                nb = sol.copy()
+                for k in range(len(bases)):
+                    l = (k-bases.index(b))*len(purchased_vessel) + i
+                    if k != bases.index(b) and nb[l] < base_cap_vessels.loc[b,vessels[l-(k*len(purchased_vessel))]] and 'switch '+bases[k]+str(b)+str(v) not in tabu:
+                        # change base of a purchased vessel
+                        nb[i] -= 1
+                        nb[l] += 1
+                        neighbors.append(nb.copy())
+                        it_move.append('switch '+str(b)+bases[k]+str(v))
+
+    # neighbors for chartered vessels
+    for b in bases:
+        for v in vessels:
+            for p in range(len(charter_periods)):
+                i = len(purchased_vessel) + bases.index(b)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + p
+                # add a chartered vessel
+                nb = sol.copy()
+                if nb[i] < base_cap_vessels.loc[b,v] and 'add '+str(b)+str(v)+str(p) not in tabu:
+                    nb[i] += 1
+                    neighbors.append(nb.copy())
+                    it_move.append('remove '+str(b)+str(v)+str(p))
+
+                if sol[i] > 0.5:
+                    # remove a chartered vessel
+                    if 'remove '+str(b)+str(v)+str(p) not in tabu:
+                        nb = sol.copy()
+                        nb[i] -= 1
+                        neighbors.append(nb.copy())
+                        it_move.append('add '+str(b)+str(v)+str(p))
+
+                    # change type of a chartered vessel in the same period
+                    nb = sol.copy()
+                    for j in range(len(vessels)):
+                        k = (j-vessels.index(v))*len(charter_periods) + i
+                        if j != vessels.index(v) and nb[k] < base_cap_vessels.loc[b,vessels[j]] and 'switch '+str(b)+vessels[j]+str(v)+str(p) not in tabu:
+                            nb[i] -= 1
+                            nb[j] += 1
+                            neighbors.append(nb.copy())
+                            it_move.append('switch '+str(b)+str(v)+vessels[j]+str(p))
+
+                    # change the period of a chartered vessel
+                    nb = sol.copy()
+                    for l in range(len(charter_periods)):
+                        m = i + (l-p)
+                        if l != p and nb[m] < base_cap_vessels.loc[b,v] and 'switch '+str(b)+str(v)+str(l)+str(p) not in tabu:
+                            nb[i] -= 1
+                            nb[m] += 1
+                            neighbors.append(nb.copy())
+                            it_move.append('switch '+str(b)+str(v)+str(p)+str(l))
+
+                    # change base of a chartered vessel
+                    nb = sol.copy()
+                    for m in range(len(bases)):
+                        n = (m-bases.index(b))*len(vessels)*len(charter_periods) + i
+                        if m != bases.index(b) and nb[n] < base_cap_vessels.loc[bases[m],v] and 'switch '+bases[m]+str(b)+str(v)+str(p) not in tabu:
+                            nb[i] -= 1
+                            nb[n] += 1
+                            neighbors.append(nb.copy())
+                            it_move.append('switch '+str(b)+bases[m]+str(v)+str(p))
+
+    # neighbors for bases
+    for b in bases:
+        i = len(purchased_vessel) + len(chartered_vessel) + bases.index(b)
+        j = bases.index(b)*len(vessels)
+        k = len(bases)*len(vessels) + bases.index(b)*len(vessels)*len(charter_periods)
+
+        # remove base + vessels
+        nb = sol.copy()
+        if nb[i] > 0.5:
+            nb[i] = 0
+            for l in range(j, j+len(vessels)):
+                nb[l] = 0
+            for m in range(k, k+len(vessels)*len(charter_periods)):
+                nb[m] = 0
+            neighbors.append(nb.copy())
+            it_move.append('remove '+str(b))
+
+        # replace base and vessels with another base
+        nb = sol.copy()
+        if nb[i] > 0.5:
+            for l in range(len(bases)):
+                if l != bases.index(b) and nb[len(purchased_vessel) + len(chartered_vessel) + l] < 0.5 and 'switch '+bases[l]+str(b) not in tabu:
+                    for x in range(l*len(vessels),(l+1)*len(vessels)):
+                        nb[x] = nb[x-(l-bases.index(b))*len(vessels)]
+                        nb[x-(l-bases.index(b))*len(vessels)] = 0
+                    m = len(bases)*len(vessels) + l*len(vessels)*len(charter_periods)
+                    for y in range(m, m + len(vessels)*len(charter_periods)):
+                        nb[y] = nb[y-(l-bases.index(b))*(len(vessels)*len(charter_periods))]
+                        nb[y-(l-bases.index(b))*(len(vessels)*len(charter_periods))] = 0
+                    nb[len(purchased_vessel) + len(chartered_vessel) + l] = 1
+                    nb[i] = 0
+                    neighbors.append(nb.copy())
+                    it_move.append('switch '+str(b)+bases[l])
+
+    # Delete neighbors that have already been considered
+    existing = []
+    for o in range(len(neighbors)):
+        for i in solution:
+            if neighbors[o] == solution[i]:
+                existing.append(neighbors[o])
+    for i in range(len(existing)):
+        if existing[i] in neighbors:
+            neighbors.remove(existing[i])
+
+    # Calculate objective values for neighbors
+    it_objectives[iteration] = []
+    for x in neighbors:
+        for b in bases:
+            l = len(purchased_vessel)+len(chartered_vessel) + bases.index(b)
+            base_used[b].lb = x[l]
+            base_used[b].lb = x[l]
+            for v in vessels:
+                i = bases.index(b)*len(vessels) + vessels.index(v)
+                purchased_vessel[b,v].lb = x[i]
+                purchased_vessel[b,v].ub = x[i]
+                for p in range(len(charter_periods)):
+                    j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p + len(purchased_vessel)
+                    chartered_vessel[b,v,p].lb = x[j]
+                    chartered_vessel[b,v,p].ub = x[j]
+        model.optimize()
+        if model.status == GRB.Status.OPTIMAL:
+            it_objectives[iteration].append(model.objVal)
+        else:
+            it_objectives[iteration].append(10000000000)
+
+    solution[iteration] = neighbors[it_objectives[iteration].index(min(it_objectives[iteration]))]
+    objective[iteration] = min(it_objectives[iteration])
+    best_objective_so_far.append(min(objective[o] for o in range(iteration)))
+    tabu.append(it_move[it_objectives[iteration].index(min(it_objectives[iteration]))])
+
+    # stopping criteria if no improvements in objective value have been found
+    if iteration > 3:
+        if objective[iteration-1] > min(best_objective_so_far) and objective[iteration-2] > min(best_objective_so_far) and objective[iteration] > min(best_objective_so_far):
+            iteration += max_it
+
+    iteration += 1
+
+final_objective = min(objective[i] for i in range(len(objective)))      # the resulting objective value
+final_solution = solution[min(objective, key=objective.get)]            # the resulting solution corresponding to the objective value
+
 # set each decision variable to the resulting solution
 for b in bases:
     l = len(purchased_vessel)+len(chartered_vessel) + bases.index(b)
