@@ -24,7 +24,10 @@ def create_parameters(data, sets, year):
     # Cost Parameters
     cost_base_operation = data['bases']['cost']
     cost_vessel_purchase = data['vessels']['cost_purchase']
-    cost_vessel_charter = data['vessels']['cost_charter_day']
+    cost_vessel_charter = {
+        (v, p): data['vessels']['cost_charter_day'][v] * len(charter_dict[p-1])
+        for v in vessels for p in charter_periods
+    }
     cost_vessel_operation = data['vessels']['cost_operation']                      # Hourly cost?
     cost_technicians = data['general']['cost_technicians'].iloc[0]          # Hourly cost
     cost_downtime = generate_downtime_cost(periods, year)
@@ -34,7 +37,7 @@ def create_parameters(data, sets, year):
     penalty_not_performed = data['general']['penalty_cost_not_performed'].iloc[0]           # Cost per hour?
 
     # Vessel Parameters
-    vessel_speed = data['vessels']['speed']
+    vessel_speed = data['vessels']['speed'] * 1.852  # Convert from knots to km/h
     transfer_time = data['vessels']['transfer_time']
     max_time_offshore = data['vessels']['max_time_offshore']
     max_vessels_available_charter = data['vessels']['available']                            # Remove?

@@ -41,21 +41,8 @@ def main():
     # Add objective function
     add_objective_function(model, sets, params, vars)
 
-
-    # Optimize the model
-    # model.optimize()
-
-
-
+    # GRASP algorithm
     solution = GRASP(model, sets, params, vars, start_time)
-
-
-
-
-    # model.computeIIS()
-    # model.write("infeasible.ilp")
-
-
 
     # Plot the inventory level of spare parts
     # plot_parts_vars(vars, sets, input_data)
