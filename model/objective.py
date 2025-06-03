@@ -4,8 +4,7 @@ from utils.utils import unpack_sets, unpack_parameters, unpack_variables
 def add_objective_function(model, sets, params, vars):
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles,
-     spare_parts) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles) = unpack_sets(sets)
 
     # Unpack parameters
     (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
@@ -15,15 +14,12 @@ def add_objective_function(model, sets, params, vars):
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
      capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
      technicians_required_task, latest_period_to_perform_task,
-     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
-     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-     reorder_level, big_m) = unpack_parameters(params)
+     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
-     periods_late, hours_spent, inventory_level, order_quantity,
-     order_trigger) = unpack_variables(vars)
+     periods_late, hours_spent) = unpack_variables(vars)
 
 
     # Objective function
@@ -35,7 +31,7 @@ def add_objective_function(model, sets, params, vars):
     obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]*24) for b in bases for v in vessels for p in periods for m in corr_tasks) #multiply with 24 because cost is per hour
     obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
     obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
-    # obj_spare_parts_cost = quicksum(holding_cost[s, b] * inventory_level[s, b, p] + order_cost[s] * order_quantity[s, b, p] for s in spare_parts for b in bases for p in periods)
+
 
     model.setObjective(
         obj_cost_bases
@@ -46,6 +42,5 @@ def add_objective_function(model, sets, params, vars):
         + obj_cost_downtime_corrective
         + obj_cost_penalty_late
         + obj_cost_penalty_not_performed,
-        # + obj_spare_parts_cost,
         GRB.MINIMIZE
     )

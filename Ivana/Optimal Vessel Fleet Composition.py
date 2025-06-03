@@ -107,7 +107,6 @@ daily_failures = pd.DataFrame(index = cor_tasks, columns = periods)
 failures = {}
 for m in cor_tasks:
     for p in periods:
-        np.random.seed(46)
         failures[p] = np.random.uniform(size = turbines)            # uniform distribution of failures
         daily_failures.loc[m,p] = sum(x < df_tasks.loc[m, 'Failure_rate']/len(periods) for x in failures[p])
 
@@ -621,8 +620,6 @@ C_downtime_pretasks = sum(cost_downtime[p]*df_tasks.loc[m, 'Active_time']*task_p
 C_downtime_cortasks = (sum(cost_downtime[p] * (task_performed[b,v,p,m].x * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m].x*24) for b in bases for v in vessels for m in cor_tasks for p in periods))
 
 C_penalties = sum(cost_penalty_late*task_late[m].x for m in pre_tasks) + sum(cost_penalty_not_performed*task_not_performed[m].x for m in tasks)
-C_penalties_late = sum(cost_penalty_late*task_late[m].x for m in pre_tasks)
-C_penalties_not_performed = sum(cost_penalty_not_performed*task_not_performed[m].x for m in tasks)
 
 
 Cost_operations_mathmodel = quicksum(hours_worked[b, v, p, m] * (100 + cost_tech * df_tasks.loc[m, 'Technicians']) for b in bases for v in vessels for p in periods for m in tasks).getValue()

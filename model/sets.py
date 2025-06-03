@@ -27,8 +27,7 @@ def create_sets(data):
     bundle_dict = generate_task_bundles(tasks)      # This is a dict with all bundles as values and 'bundle_ids' as keys
     bundles = list(bundle_dict.keys())              # This is a list of all bundle_ids
 
-    # Extension sets
-    spare_parts = data['spare_parts']['SET'].tolist()
+
 
 
     #Create the sets dictionary
@@ -45,6 +44,6 @@ def create_sets(data):
     sets['planned_corr_tasks'] = planned_corr_tasks
     sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
-    sets['spare_parts'] = spare_parts
+
 
     return sets

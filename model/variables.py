@@ -8,20 +8,9 @@ def create_variables(model, sets, params):
     """
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts
-     ) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles) = unpack_sets(sets)
 
-    # Unpack parameters
-    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
-     cost_vessel_operation, cost_technicians, cost_downtime,
-     penalty_preventive_late, penalty_not_performed, vessel_speed,
-     transfer_time, max_time_offshore, max_vessels_available_charter,
-     distance_base_OWF, technicians_available, capacity_base_for_vessels,
-     capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
-     technicians_required_task, latest_period_to_perform_task,
-     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
-     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-     reorder_level, big_m) = unpack_parameters(params)
+
 
 
     #z_b
@@ -52,15 +41,7 @@ def create_variables(model, sets, params):
     hours_spent = model.addVars(bases, vessels, periods, tasks, lb=0, vtype=GRB.CONTINUOUS, name='hours_spent')
 
 
-    # Extension variables
-    # q_sbp
-    inventory_level = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="inventory_level")
 
-    # o_sbp
-    order_quantity = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
-
-    # o^trig_sbp
-    order_trigger = model.addVars(spare_parts, bases, periods, lb=0, ub=1, vtype=GRB.BINARY, name="order_trigger")
 
 
     # Initial values
@@ -85,9 +66,6 @@ def create_variables(model, sets, params):
         'tasks_not_performed': tasks_not_performed,
         'periods_late': periods_late,
         'hours_spent': hours_spent,
-        'inventory_level': inventory_level,
-        'order_quantity': order_quantity,
-        'order_trigger': order_trigger
     }
 
 
