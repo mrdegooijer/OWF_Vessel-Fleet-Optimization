@@ -396,13 +396,6 @@ for v in vessels:
 
 model.optimize()
 
-# Print the solution
-print("Objective value Greedy:", model.objVal)
-
-print('Base use:', {b: base_used[b].X for b in bases})
-print('Purchased vessels:', {b: {v: purchased_vessel[b, v].X for v in vessels} for b in bases})
-print('Chartered vessels:', {b: {v: {p: chartered_vessel[b, v, p].X for p in range(len(charter_periods))} for v in vessels} for b in bases})
-exit()
 # ---------------------------- Tabu search ----------------------------
 
 iteration = 0               # initial solution
