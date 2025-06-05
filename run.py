@@ -10,7 +10,6 @@ from model.variables import create_variables
 from model.constraints import add_constraints
 from model.objective import add_objective_function
 from utils.plotting import plot_parts_vars
-from model.solution import *
 from model.GRASP import *
 from gurobipy import *
 import time
