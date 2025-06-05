@@ -77,7 +77,7 @@ def add_constraints(model, sets, params, vars):
 
     # Constraint 7: Tasks performed late
     for m in prev_tasks:
-        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in range(latest_period_to_perform_task, periods[-1])) == tasks_late[m], name=f"tasks_performed_late_{m}")
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in range(latest_period_to_perform_task, periods[-1]+1)) == tasks_late[m], name=f"tasks_performed_late_{m}")
 
     # Constraint 8: Weather restrictions
     for b in bases:
@@ -94,11 +94,11 @@ def add_constraints(model, sets, params, vars):
 
     # Constraint 10: Perform scheduled preventive tasks
     for m in prev_tasks:
-        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == planned_prev_tasks[m], name=f"perform_scheduled_preventive_tasks_{m}")
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods) + tasks_not_performed[m]  == planned_prev_tasks[m], name=f"perform_scheduled_preventive_tasks_{m}")
 
     # Constraint 11: Perform corrective tasks
     for m in corr_tasks:
-        model.addConstr(quicksum(task_performed[b, v, p, m] + tasks_not_performed[m] for b in bases for v in vessels for p in periods) == quicksum(planned_corr_tasks.loc[m, p] for p in periods), name=f"perform_scheduled_corrective_tasks_{m}")
+        model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods) + tasks_not_performed[m]  == quicksum(planned_corr_tasks.loc[m, p] for p in periods), name=f"perform_scheduled_corrective_tasks_{m}")
 
     # Constraint 12: Corrective tasks performed after failure
     for p in periods:
@@ -122,7 +122,8 @@ def add_constraints(model, sets, params, vars):
         for v in vessels:
             for p in periods:
                 for m in tasks:
-                    model.addConstr(task_performed[b, v, p, m] <= quicksum(hours_spent[c, w, q, m]/time_to_perform_task[m] - task_performed[c, w, q, m] for c in bases for w in vessels for q in range(1, p+1)) + hours_spent[b, v, p, m]/time_to_perform_task[m], name=f"time_spent_on_tasks_{b},{v},{p},{m}")
+                    model.addConstr(task_performed[b, v, p, m] == quicksum(hours_spent[c, w, q, m]/time_to_perform_task[m] - task_performed[c, w, q, m] for c in bases for w in vessels for q in range(0, p)) + hours_spent[b, v, p, m]/time_to_perform_task[m], name=f"time_spent_on_tasks_{b},{v},{p},{m}")
+
 
 
 

@@ -29,10 +29,10 @@ def add_objective_function(model, sets, params, vars):
     # Objective function
     obj_cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases)
     obj_cost_purchase_vessel = quicksum(cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases)
-    obj_cost_charter_vessel = quicksum(cost_vessel_charter[v] * chartered_vessels[b, v, p] for v in vessels for b in bases for p in charter_periods)
+    obj_cost_charter_vessel = quicksum(cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p] for v in vessels for b in bases for p in charter_periods)
     obj_cost_operations = quicksum(hours_spent[b, v, p, m] * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in bases for v in vessels for p in periods for m in tasks)
     obj_cost_downtime_preventive = quicksum(cost_downtime[p] * time_to_perform_task[m] * task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in prev_tasks)
-    obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]) for b in bases for v in vessels for p in periods for m in corr_tasks)
+    obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]*24) for b in bases for v in vessels for p in periods for m in corr_tasks) #multiply with 24 because cost is per hour
     obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
     obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
     obj_spare_parts_cost = quicksum(holding_cost[s, b] * inventory_level[s, b, p] + order_cost[s] * order_quantity[s, b, p] for s in spare_parts for b in bases for p in periods)

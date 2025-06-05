@@ -31,6 +31,8 @@ def create_sets(data):
     spare_parts = data['spare_parts']['SET'].tolist()
 
 
+
+
     #Create the sets dictionary
     sets['bases'] = bases
     sets['tasks'] = tasks
@@ -46,5 +48,6 @@ def create_sets(data):
     sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
     sets['spare_parts'] = spare_parts
+
 
     return sets

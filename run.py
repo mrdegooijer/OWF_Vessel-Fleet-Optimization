@@ -1,3 +1,8 @@
+"""
+@author: Mischa de Gooijer
+@date: 2025
+"""
+
 from utils.utils import load_input_data
 from model.sets import create_sets
 from model.parameters import create_parameters
@@ -6,10 +11,15 @@ from model.constraints import add_constraints
 from model.objective import add_objective_function
 from utils.plotting import plot_parts_vars
 from model.solution import *
+from model.GRASP import *
 from gurobipy import *
+import time
 
 
 def main():
+    # Initiate time tracking
+    start_time = time.time()
+
     # Load input data
     file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
@@ -31,41 +41,11 @@ def main():
     # Add objective function
     add_objective_function(model, sets, params, vars)
 
-
-    # Optimize the model
-    # model.optimize()
-
-
-    # Start the greedy construction
-    solution_vector = greedy_construction(model, sets, params, vars)
-
-
-
-
-
-    # model.computeIIS()
-    # model.write("infeasible.ilp")
-
-    # Print the results
-    # if model.status == GRB.OPTIMAL:
-    #     print("Optimal solution found:")
-    #     for v in model.getVars():
-    #         if v.X > 0:
-    #             print(f"{v.VarName}: {v.X}")
-    # else:
-    #     print("No optimal solution found.")
-
-    # Plot the results
-    # plot_parts_vars(vars, sets)
-    #print the inventory levels
-    # for s in sets['spare_parts']:
-    #     for b in sets['bases']:
-    #         for p in sets['periods']:
-    #             print(f"Inventory level of spare part {s} at base {b} in period {p}: {vars['inventory_level'][s, b, p].X}")
-    #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
+    # GRASP algorithm
+    solution = GRASP(model, sets, params, vars, start_time)
 
     # Plot the inventory level of spare parts
-    plot_parts_vars(vars, sets, input_data)
+    # plot_parts_vars(vars, sets, input_data)
 
 if __name__ == "__main__":
     main()

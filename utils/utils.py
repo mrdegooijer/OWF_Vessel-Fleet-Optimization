@@ -60,6 +60,7 @@ def unpack_sets(sets):
     bundles = sets['bundles']
     spare_parts = sets['spare_parts']
 
+
     return (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
             prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts)
 
@@ -99,6 +100,7 @@ def unpack_parameters(params):
     max_part_capacity = params['max_part_capacity']
     reorder_level = params['reorder_level']
     big_m = params['big_m']
+
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
             cost_vessel_operation, cost_technicians, cost_downtime,
