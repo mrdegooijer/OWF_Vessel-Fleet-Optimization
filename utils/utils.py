@@ -22,7 +22,6 @@ def generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, input_t
     failures = {}
     for m in corr_tasks:
         for p in periods:
-            np.random.seed(46) # for validation
             failures[p] = np.random.uniform(size=turbines)  # uniform distribution of the failures
             daily_failures.loc[m, p] = sum(x < input_tasks.loc[m, 'failure_rate'] / len(periods) for x in failures[p])
 

@@ -29,12 +29,13 @@ vessels = ["V1", "V2", "V3"]                          # list of vessel types con
 data_vessels = {
     "Hslimit": [2.0, 2.5, 3.5],                       # maximum wave height
     "speed": [20, 30, 25],                            # speed of vessel in knots
-    "dayrate": [5000, 10000, 16250],                  # daily cost to charter vessel
+    "dayrate": [166.67, 333.33, 541.67],                  # daily cost to charter vessel
     "tech_cap": [10, 12, 12],                         # capacity for technicians on board
     "transfer_time": [15, 20, 30],                    # time for technicians to access or return a turbine, also includes traveltime between turbines
     "available": [5, 4, 2],                           # maximum number of vessels available for chartering
     "max_time_offshore": [12, 12, 24],                # maximum time a vessel may stay offshore
-    "purchase_cost": [10000, 80000, 130000]           # cost of purchasing a vessel
+    "purchase_cost": [10000, 80000, 130000] ,          # cost of purchasing a vessel
+    "Op_cost": [166.67, 166.67, 83.33]
     }
 df_vessels = pd.DataFrame(data_vessels, index = vessels)
 
@@ -324,19 +325,20 @@ model.update()
 Cost_bases = quicksum(df_bases.loc[b,'Cost']*base_used[b] for b in bases)
 Cost_purchasing_vessels = quicksum(df_vessels.loc[v, 'purchase_cost']*purchased_vessel[b,v] for b in bases for v in vessels)
 Cost_chartering_vessels = quicksum(df_vessels.loc[v, 'dayrate']*len(charter_periods[p])*chartered_vessel[b,v,p] for b in bases for v in vessels for p in range(len(charter_periods)))
-Cost_operations = quicksum(bundle_performed[b,v,p,k]*sum(df_tasks.loc[bundles[k][i], 'Repair_cost'] for i in range(len(bundles[k]))) for b in bases for v in vessels for k in range(len(bundles)) for p in periods)
-Cost_technicians = quicksum(task_performed[b,v,p,m]*df_tasks.loc[m, 'Active_time']*df_tasks.loc[m, 'Technicians']*cost_tech for b in bases for v in vessels for m in tasks for p in periods)
-# Cost_operations_mathmodel = quicksum(hours_worked[b, v, p, m] * (100 + cost_tech * df_tasks.loc[m, 'Technicians']) for b in bases for v in vessels for p in periods for m in tasks)
+# Cost_operations = quicksum(bundle_performed[b,v,p,k]*sum(df_tasks.loc[bundles[k][i], 'Repair_cost'] for i in range(len(bundles[k]))) for b in bases for v in vessels for k in range(len(bundles)) for p in periods)
+# Cost_technicians = quicksum(task_performed[b,v,p,m]*df_tasks.loc[m, 'Active_time']*df_tasks.loc[m, 'Technicians']*cost_tech for b in bases for v in vessels for m in tasks for p in periods)
+Cost_operations_mathmodel = quicksum(hours_worked[b, v, p, m] * (df_vessels.loc[v, 'Op_cost'] + cost_tech * df_tasks.loc[m, 'Technicians']) for b in bases for v in vessels for p in periods for m in tasks)
 Cost_downtime_pretasks = quicksum(cost_downtime[p]*df_tasks.loc[m, 'Active_time']*task_performed[b,v,p,m] for b in bases for v in vessels for m in pre_tasks for p in periods)
 Cost_downtime_cortasks = quicksum(cost_downtime[p] * (task_performed[b,v,p,m] * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m]*24) for b in bases for v in vessels for m in cor_tasks for p in periods)
 Cost_penalties = quicksum(cost_penalty_late*task_late[m] for m in pre_tasks) + quicksum(cost_penalty_not_performed*task_not_performed[m] for m in tasks)
 
-model.setParam( 'OutputFlag', True)
-model.setParam( 'NonConvex', 2)
+# model.setParam( 'OutputFlag', True)
+# model.setParam( 'NonConvex', 2)
 model.setParam ('MIPGap', 0);
+model.setParam('Seed', 42)
 
-model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vessels + Cost_operations + Cost_technicians + Cost_downtime_pretasks + Cost_penalties + Cost_downtime_cortasks)
-# model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vessels + Cost_operations_mathmodel  + Cost_downtime_pretasks + Cost_penalties + Cost_downtime_cortasks)
+# model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vessels + Cost_operations + Cost_technicians + Cost_downtime_pretasks + Cost_penalties + Cost_downtime_cortasks)
+model.setObjective( Cost_bases + Cost_purchasing_vessels + Cost_chartering_vessels + Cost_operations_mathmodel  + Cost_downtime_pretasks + Cost_penalties + Cost_downtime_cortasks)
 
 
 # ---------------------------- Greedy construction algorithm ----------------------------
@@ -605,17 +607,17 @@ model.optimize()
 
 C_bases = sum(df_bases.loc[b,'Cost']*base_used[b].x for b in bases)
 C_purchasing_vessels = sum(df_vessels.loc[v, 'purchase_cost']*purchased_vessel[b,v].x for b in bases for v in vessels)
-C_chartering_vessels = sum(df_vessels.loc[v, 'dayrate']*chartered_vessel[b,v,p].x for b in bases for v in vessels for p in range(len(charter_periods)))
-C_operations = sum(bundle_performed[b,v,p,k].x*sum(df_tasks.loc[bundles[k][i], 'Repair_cost'] for i in range(len(bundles[k]))) for b in bases for v in vessels for k in range(len(bundles)) for p in periods)
-C_technicians = sum(task_performed[b,v,p,m].x*df_tasks.loc[m, 'Active_time']*df_tasks.loc[m, 'Technicians']*cost_tech for b in bases for v in vessels for m in tasks for p in periods)
+C_chartering_vessels = sum(df_vessels.loc[v, 'dayrate']*len(charter_periods[p])*chartered_vessel[b,v,p].x for b in bases for v in vessels for p in range(len(charter_periods)))
+# C_operations = sum(bundle_performed[b,v,p,k].x*sum(df_tasks.loc[bundles[k][i], 'Repair_cost'] for i in range(len(bundles[k]))) for b in bases for v in vessels for k in range(len(bundles)) for p in periods)
+# C_technicians = sum(task_performed[b,v,p,m].x*df_tasks.loc[m, 'Active_time']*df_tasks.loc[m, 'Technicians']*cost_tech for b in bases for v in vessels for m in tasks for p in periods)
 C_downtime_pretasks = sum(cost_downtime[p]*df_tasks.loc[m, 'Active_time']*task_performed[b,v,p,m].x for b in bases for v in vessels for m in pre_tasks for p in periods)
-
+#
 C_downtime_cortasks = (sum(cost_downtime[p] * (task_performed[b,v,p,m].x * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m].x*24) for b in bases for v in vessels for m in cor_tasks for p in periods))
-
+#
 C_penalties = sum(cost_penalty_late*task_late[m].x for m in pre_tasks) + sum(cost_penalty_not_performed*task_not_performed[m].x for m in tasks)
-
-
-Cost_operations_mathmodel = quicksum(hours_worked[b, v, p, m] * (100 + cost_tech * df_tasks.loc[m, 'Technicians']) for b in bases for v in vessels for p in periods for m in tasks).getValue()
+#
+#
+Cost_operations_mathmodel = quicksum(hours_worked[b, v, p, m] * (df_vessels.loc[v, 'Op_cost'] + cost_tech * df_tasks.loc[m, 'Technicians']) for b in bases for v in vessels for p in periods for m in tasks).getValue()
 for b in bases:
     print('At '+str(b))
     for v in vessels:
@@ -628,14 +630,14 @@ print('The total costs are: %.2f' % model.objVal )
 print('The costs for using bases are: %.2f' % C_bases)
 print('The costs for purchasing vessels are: %.2f' % C_purchasing_vessels)
 print('The costs for chartering vessels are: %.2f' % C_chartering_vessels)
-print('The costs for executing maintenance tasks are: %.2f' % C_operations)
-print('The costs for technicians are: %.2f' % C_technicians)
-print('The costs due to downtime are: %.2f' % (C_downtime_cortasks+C_downtime_pretasks))
+print('The costs for operations mathmodel: %.2f' % Cost_operations_mathmodel)
+# print('The costs for executing maintenance tasks are: %.2f' % C_operations)
+# print('The costs for technicians are: %.2f' % C_technicians)
+# print('The costs due to downtime are: %.2f' % (C_downtime_cortasks+C_downtime_pretasks))
 print('The costs for downtime preventive tasks are: %.2f' % C_downtime_pretasks)
 print('The costs for downtime corrective tasks are: %.2f' % C_downtime_cortasks)
 print('The costs for penalties are: %.2f' % C_penalties)
 
-print('costs for operations mathmodel: %.2f' % Cost_operations_mathmodel)
 
 
 print("--- %s seconds ---" % (time.time() - start_time))

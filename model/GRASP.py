@@ -59,7 +59,6 @@ def GRASP(model, sets, params, vars, start_time):
             obj_value_pv[v][i] = []
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
-            print(f"Optimizing purchased vessels for base {b_opt}, vessel {v}, quantity {i}")
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
@@ -76,7 +75,6 @@ def GRASP(model, sets, params, vars, start_time):
                 obj_value_cv[v][p][i] = []
                 chartered_vessels[b_opt, v, p].ub = i
                 chartered_vessels[b_opt, v, p].lb = i
-                print(f"Optimizing chartered vessels for base {b_opt}, vessel {v}, period {p}, quantity {i}")
                 model.optimize()
                 obj_value_cv[v][p][i] = model.objVal
             chartered_vessels[b_opt,v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
@@ -350,10 +348,13 @@ def GRASP(model, sets, params, vars, start_time):
     print('cost penalty late', obj_cost_penalty_late.getValue())
     print('cost penalty not performed', obj_cost_penalty_not_performed.getValue())
 
-    print('cost downtime corr - cost downtime', quicksum(cost_downtime[p] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    print('cost downtime corr - tasks performed', quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    print('cost downtime corr - time working on it',  quicksum(distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    print('cost downtime corr - tasks * time working', quicksum(task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    print('cost downtime corr - periods late (hours)', quicksum(periods_late[p, m]*24 for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+    # print('cost downtime corr - cost downtime', quicksum(cost_downtime[p] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+    # print('cost downtime corr - tasks performed', quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+    # print('cost downtime corr - time working on it',  quicksum(distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+    # print('cost downtime corr - tasks * time working', quicksum(task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+    # print('cost downtime corr - periods late (hours)', quicksum(periods_late[p, m]*24 for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
+
+    for p in periods:
+        print(p, quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for m in tasks).getValue())
 
     print("--- %s seconds ---" % (time.time() - start_time))
