@@ -30,6 +30,9 @@ def main():
 
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
+
+    
+
     params = create_parameters(input_data, sets, year)
     vars = create_variables(model, sets, params)
     model.update()

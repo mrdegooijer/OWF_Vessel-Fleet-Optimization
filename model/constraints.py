@@ -52,11 +52,17 @@ def add_constraints(model, sets, params, vars):
         for p in charter_periods:
             model.addConstr(quicksum(chartered_vessels[b, v, p] for b in bases) <= max_vessels_available_charter[v], name=f"max_vessels_available_for_charter_{v},{p}")
 
-    # Constraint 3: Maximum time offshore
-    for b in bases:
+    # Constraint 3.a: Maximum time offshore (operating from base)
+    for e in bases:
         for v in vessels:
             for p in periods:
-                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[b]/vessel_speed[v])) for k in bundles), name=f"max_time_offshore_{b},{v},{p}")
+                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[e]/vessel_speed[v])) for k in bundles), name=f"max_time_offshore_{e},{v},{p}")
+
+    # Constraint 3.b: Maximum time offshore (operating from mothervessel)
+    for e in mother_vessels:
+        for v in [v for v in vessels if v not in mother_vessels]:
+            for p in periods:
+                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] + additional_time[v] - transfer_time[v] * (1 + len(bundle_dict[k])))) for k in bundles), name=f"max_time_offshore_{e},{v},{p}")
 
     # Constraint 4: Base capacity for technicians
     for b in bases:
@@ -81,17 +87,17 @@ def add_constraints(model, sets, params, vars):
         model.addConstr(quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in range(latest_period_to_perform_task, periods[-1]+1)) == tasks_late[m], name=f"tasks_performed_late_{m}")
 
     # Constraint 8: Weather restrictions
-    for b in bases:
+    for e in locations:
         for v in vessels:
             for p in periods:
-                model.addConstr(quicksum(hours_spent[b, v, p, m] for m in tasks) <= quicksum(bundle_performed[b, v, p, k] * (len(bundle_dict[k]) * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[b]/vessel_speed[v])) for k in bundles), name=f"weather_availability_{b},{v},{p}")
+                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[e]/vessel_speed[v])) for k in bundles), name=f"weather_availability_{e},{v},{p}")
 
     # Constraint 9: Vessel-task compatibility
-    for b in bases:
+    for e in locations:
         for m in tasks:
             for v in [v for v in vessels if v not in vessel_task_compatibility[m]]:
                 for p in periods:
-                    model.addConstr(task_performed[b, v, p, m] == 0, name=f"vessel_task_compatibility_{b},{v},{p},{m}")
+                    model.addConstr(task_performed[e, v, p, m] == 0, name=f"vessel_task_compatibility_{e},{v},{p},{m}")
 
     # Constraint 10: Perform scheduled preventive tasks
     for m in prev_tasks:
@@ -112,11 +118,11 @@ def add_constraints(model, sets, params, vars):
             model.addConstr(periods_late[p, m] == planned_corr_tasks.loc[m, p] - quicksum(task_performed[b, v, p, m] for b in bases for v in vessels) + get_periods_late(p-1, m, periods_late), name=f"periods_late_{p},{m}")
 
     # Constraint 14: Tasks performed from bundles
-    for b in bases:
+    for e in locations:
         for v in vessels:
             for p in periods:
                 for m in tasks:
-                    model.addConstr(task_performed[b, v, p, m] <= quicksum(tasks_in_bundles[m, k] * bundle_performed[b, v, p, k] for k in bundles), name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
+                    model.addConstr(task_performed[e, v, p, m] <= quicksum(tasks_in_bundles[m, k] * bundle_performed[e, v, p, k] for k in bundles), name=f"tasks_performed_from_bundles_{b},{v},{p},{m}")
 
     # Constraint 15: Time spent on tasks
     for b in bases:
@@ -166,5 +172,26 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 model.addGenConstrIndicator(order_trigger[s, b, p], 1, order_quantity[s, b, p] == max_part_capacity[s, b] - inventory_level[s, b, p], name=f"order_quantity_{s},{b},{p}")
                 model.addGenConstrIndicator(order_trigger[s, b, p], 0, order_quantity[s, b, p] == 0, name=f"order_quantity_zero_{s},{b},{p}")
+
+    # Constraint 21: Max one mothervessel per type
+    # for v in mother_vessels: 
+    #     for p in periods:
+    #         model.addConstr(quicksum(purchased_vessels[b, v] + chartered_vessels[b, v, p] for b in bases) <= 1, name=f"mother_vessel_limit_{v},{p}")
+
+    # Constraint 22: Mothervessl docking capacity
+    # for e in mother_vessels:
+    #     for p in periods:
+    #         model.addConstr(quicksum(bundle_performed[e, v, p, k] for v in [v for v in vessels if v not in mother_vessels] for k in bundles for k in bundles), name=f"mothervessel_docking_capacity_{e},{p}")
+
+    # Constraint 23: Mothervessel status
+    # for e in mother_vessels:
+    #     for p in periods:
+    #         model.addConstr(docking_available[e, p] <= mv_offshore[e, p], name=f"mothervessel_status_{e},{p}")
+    
+    # Constraint 24: Mothervessel maximum time offshore
+    # for e in mother_vessels:
+    #     for p in range(1, periods[-1]+1 - max_time_offshore[e]):
+    #         model.addConstr(quicksum(mv_offshore[e, q] for q in range(p, p + max_time_offshore[e] + 1)) <= max_time_offshore[e], name=f"mothervessel_max_time_offshore_{e},{p}")
+
 
     model.update()

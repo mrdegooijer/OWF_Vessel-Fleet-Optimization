@@ -31,7 +31,13 @@ def create_sets(data):
     spare_parts = data['spare_parts']['SET'].tolist()
     mother_vessels = data['vessels'].loc[data['vessels']['MV'] == 1, 'SET'].tolist()
     locations = data['locations']['SET'].tolist()
-      #Create the sets dictionary
+
+    print("Duplicate spare_parts:", [x for x in spare_parts if spare_parts.count(x) > 1])
+    print("Duplicate locations:", [x for x in locations if locations.count(x) > 1])
+    print("Duplicate periods:", [x for x in periods if periods.count(x) > 1])
+
+
+    #Create the sets dictionary
     sets['bases'] = bases
     sets['tasks'] = tasks
     sets['periods'] = periods
