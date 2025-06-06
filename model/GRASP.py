@@ -9,7 +9,7 @@ def GRASP(model, sets, params, vars, start_time):
     Developed by: Ivana Versluijs, 2023
     """
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts) = unpack_sets(sets)
 
     (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
      cost_vessel_operation, cost_technicians, cost_downtime,
@@ -18,11 +18,14 @@ def GRASP(model, sets, params, vars, start_time):
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
      capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
      technicians_required_task, latest_period_to_perform_task,
-     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore) = unpack_parameters(params)
+     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
+     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
+     reorder_level, big_m) = unpack_parameters(params)
 
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
-     periods_late, hours_spent) = unpack_variables(vars)
+     periods_late, hours_spent, inventory_level, order_quantity,
+     order_trigger) = unpack_variables(vars)
 
     # ========== Greedy Construction Algorithm ==========
     # --- 1. --- Set all bases and vessels to zero
@@ -56,7 +59,7 @@ def GRASP(model, sets, params, vars, start_time):
     for v in vessels:
         obj_value_pv[v] = {}
         for i in range(min(max_vessels_available_charter[v], capacity_base_for_vessels[b_opt, v]) + 1):
-            obj_value_pv[v][i] = []
+            obj_value_pv[v][i] = float('inf')
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
             model.optimize()
@@ -310,51 +313,3 @@ def GRASP(model, sets, params, vars, start_time):
                 chartered_vessels[b, v, p].ub = final_solution[j]
 
     model.optimize()
-
-    for b in bases:
-        print('At ' + str(b))
-        for v in vessels:
-            print('The number of purchased vessels of type ' + str(v) + ' is: %d' % purchased_vessels[b, v].x)
-        for v in vessels:
-            for p in charter_periods:
-                print('The number of chartered vessels of type ' + str(v) + ' in period ' + str(p) + ' is: %d' %
-                      chartered_vessels[b, v, p].x)
-
-    obj_cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases)
-    obj_cost_purchase_vessel = quicksum(
-        cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases)
-    obj_cost_charter_vessel = quicksum(
-        cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p] for v in vessels for b in bases for p in charter_periods)
-    obj_cost_operations = quicksum(
-        hours_spent[b, v, p, m] * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in
-        bases for v in vessels for p in periods for m in tasks)
-    obj_cost_downtime_preventive = quicksum(
-        cost_downtime[p] * time_to_perform_task[m] * task_performed[b, v, p, m] for b in bases for v in vessels for p in
-        periods for m in prev_tasks)
-    obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (
-                distance_base_OWF[b] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[
-                                                                    p, m] * 24) for b in bases for v in vessels for p in
-                                            periods for m in corr_tasks)  # multiply with 24 because cost is per hour
-    obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
-    obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
-
-    print('Objective value:', model.objVal)
-    print('cost bases', obj_cost_bases.getValue())
-    print('cost purchase vessels', obj_cost_purchase_vessel.getValue())
-    print('cost charter vessels', obj_cost_charter_vessel.getValue())
-    print('cost operations', obj_cost_operations.getValue())
-    print('cost downtime preventive', obj_cost_downtime_preventive.getValue())
-    print('cost downtime corrective', obj_cost_downtime_corrective.getValue())
-    print('cost penalty late', obj_cost_penalty_late.getValue())
-    print('cost penalty not performed', obj_cost_penalty_not_performed.getValue())
-
-    # print('cost downtime corr - cost downtime', quicksum(cost_downtime[p] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    # print('cost downtime corr - tasks performed', quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    # print('cost downtime corr - time working on it',  quicksum(distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m] for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    # print('cost downtime corr - tasks * time working', quicksum(task_performed[b, v, p, m] * (distance_base_OWF[b]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-    # print('cost downtime corr - periods late (hours)', quicksum(periods_late[p, m]*24 for b in bases for v in vessels for p in periods for m in corr_tasks).getValue())
-
-    for p in periods:
-        print(p, quicksum(task_performed[b, v, p, m] for b in bases for v in vessels for m in tasks).getValue())
-
-    print("--- %s seconds ---" % (time.time() - start_time))

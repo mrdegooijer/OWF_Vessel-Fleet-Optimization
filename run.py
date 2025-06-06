@@ -9,8 +9,8 @@ from model.parameters import create_parameters
 from model.variables import create_variables
 from model.constraints import add_constraints
 from model.objective import add_objective_function
-from utils.plotting import plot_parts_vars
-from model.GRASP import *
+from model.GRASP import GRASP
+from utils.results import results
 from gurobipy import *
 import time
 
@@ -41,10 +41,11 @@ def main():
     add_objective_function(model, sets, params, vars)
 
     # GRASP algorithm
-    solution = GRASP(model, sets, params, vars, start_time)
+    GRASP(model, sets, params, vars, start_time)
+    model.write("solution_dG25_SE.sol")
 
-    # Plot the inventory level of spare parts
-    # plot_parts_vars(vars, sets, input_data)
+    # Return the results
+    results(model, sets, params, vars, start_time)
 
 if __name__ == "__main__":
     main()

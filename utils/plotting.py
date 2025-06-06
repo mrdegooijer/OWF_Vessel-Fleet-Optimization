@@ -29,7 +29,7 @@ def plot_parts_vars(vars, sets, data):
             )
 
             # Plot the reorder level as a horizontal line
-            reorder_level = data['reorder_level'].loc[(s, b)]
+            reorder_level = data['reorder_level'][(s, b)]
             df['Reorder level'] = reorder_level
             df.plot(
                 marker='o',
@@ -38,12 +38,6 @@ def plot_parts_vars(vars, sets, data):
                 xlabel='Period'
             )
 
-            ax = df.plot(
-                marker='o',
-                title=f"{s} – {b}",
-                ylabel='Units / binary',
-                xlabel='Period'
-            )
     ax.legend(loc='best')
     plt.tight_layout()
     plt.show()

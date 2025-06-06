@@ -74,10 +74,6 @@ def create_variables(model, sets, params):
                 hours_spent[b, v, 0, m] = 0
 
 
-
-
-
-
     vars = {
         'base_use': base_use,
         'purchased_vessels': purchased_vessels,
@@ -93,5 +89,4 @@ def create_variables(model, sets, params):
         'order_trigger': order_trigger
     }
 
-    model.update()
     return vars
