@@ -29,11 +29,9 @@ def create_sets(data):
 
     # Extension sets
     spare_parts = data['spare_parts']['SET'].tolist()
-
-
-
-
-    #Create the sets dictionary
+    mother_vessels = data['vessels'].loc[data['vessels']['MV'] == 1, 'SET'].tolist()
+    locations = data['locations']['SET'].tolist()
+      #Create the sets dictionary
     sets['bases'] = bases
     sets['tasks'] = tasks
     sets['periods'] = periods
@@ -48,6 +46,7 @@ def create_sets(data):
     sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
     sets['spare_parts'] = spare_parts
-
+    sets['mother_vessels'] = mother_vessels
+    sets['locations'] = locations
 
     return sets

@@ -59,10 +59,12 @@ def unpack_sets(sets):
     bundle_dict = sets['bundle_dict']
     bundles = sets['bundles']
     spare_parts = sets['spare_parts']
-
+    mother_vessels = sets['mother_vessels']
+    locations = sets['locations']
 
     return (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts)
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
+            mother_vessels, locations)
 
 def unpack_parameters(params):
     """
@@ -83,7 +85,7 @@ def unpack_parameters(params):
     max_time_offshore = params['max_time_offshore']
     max_vessels_available_charter = params['max_vessels_available_charter']
     distance_base_OWF = params['distance_base_OWF']
-    technicians_available = params['technicians_available']
+    # technicians_available = params['technicians_available']
     capacity_base_for_vessels = params['capacity_base_for_vessels']
     capacity_vessel_for_technicians = params['capacity_vessel_for_technicians']
     failure_rate = params['failure_rate']
@@ -100,18 +102,22 @@ def unpack_parameters(params):
     max_part_capacity = params['max_part_capacity']
     reorder_level = params['reorder_level']
     big_m = params['big_m']
+    max_capacity_for_docking = params['max_capacity_for_docking']
+    additional_time = params['additional_time']  
+    tech_standby_cost = params['tech_standby_cost']  
 
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
             cost_vessel_operation, cost_technicians, cost_downtime,
             penalty_preventive_late, penalty_not_performed, vessel_speed,
             transfer_time, max_time_offshore, max_vessels_available_charter,
-            distance_base_OWF, technicians_available, capacity_base_for_vessels,
+            distance_base_OWF, capacity_base_for_vessels,
             capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
             technicians_required_task, latest_period_to_perform_task,
             tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
             order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-            reorder_level, big_m)
+            reorder_level, big_m, max_capacity_for_docking,
+            additional_time, tech_standby_cost)
 
 def unpack_variables(vars):
     """
@@ -131,11 +137,14 @@ def unpack_variables(vars):
     inventory_level = vars['inventory_level']
     order_quantity = vars['order_quantity']
     order_trigger = vars['order_trigger']
+    docking_available = vars['docking_available']
+    mv_offshore = vars['mv_offshore']
+    technicians_available = vars['technicians_available']
 
     return (base_use, purchased_vessels, chartered_vessels, task_performed,
             bundle_performed, tasks_late, tasks_not_performed,
             periods_late, hours_spent, inventory_level, order_quantity,
-            order_trigger)
+            order_trigger, docking_available, mv_offshore, technicians_available)
 
 def return_charter_period(p, charter_dict):
     """

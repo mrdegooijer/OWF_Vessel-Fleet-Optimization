@@ -6,10 +6,9 @@ def create_parameters(data, sets, year):
     :return: params
     """
     # Unpack sets
-    (
-        bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-        prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts
-    ) = unpack_sets(sets)
+    (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
+            mother_vessels, locations) = unpack_sets(sets)
 
     # Set index for dataframes
     data['bases'].set_index('SET', inplace=True)
@@ -43,8 +42,8 @@ def create_parameters(data, sets, year):
     max_vessels_available_charter = data['vessels']['available']                            # Remove?
 
     # Base Parameters
-    distance_base_OWF = data['bases']['distance']
-    technicians_available = data['bases']['technicians_available']
+    distance_base_OWF = data['locations']['distance']
+    # technicians_available = data['bases']['technicians_available']
 
     # Capacity Parameters
     capacity_base_for_vessels = {
@@ -77,24 +76,29 @@ def create_parameters(data, sets, year):
     order_cost = data['spare_parts']['order_cost']
     lead_time = data['spare_parts']['lead_time']
     holding_cost = {
-        (s, b): data['holding_costs'].at[s, b]
-        for s in spare_parts for b in bases
+        (s, e): data['holding_costs'].at[s, e]
+        for s in spare_parts for e in locations
     }
     parts_required = {
         (m, s): data['spare_parts_required'].at[s, m]
         for s in spare_parts for m in tasks
     }
     max_part_capacity = {
-        (s, b): data['max_capacity'].at[s, b]
-        for s in spare_parts for b in bases
+        (s, e): data['max_capacity'].at[s, e]
+        for s in spare_parts for e in locations
     }
     reorder_level = {
-        (s, b): data['reorder_level'].at[s, b]
-        for s in spare_parts for b in bases
+        (s, e): data['reorder_level'].at[s, e]
+        for s in spare_parts for e in locations
     }
 
     # Big-M parameter
     big_M = 1e9
+
+    # Mother Vessel Parameters
+    max_capacity_for_docking = data['locations']['max_capacity_for_docking']
+    additional_time = data['vessels']['additional_time']                # additional hours for CTVs when docking at mother vessel
+    tech_standby_cost = data['general']['tech_standby_cost'].iloc[0]  # Cost per hour for technicians on standby
 
     # Create the parameters dictionary
     params = {
@@ -111,7 +115,7 @@ def create_parameters(data, sets, year):
         'max_time_offshore': max_time_offshore,
         'max_vessels_available_charter': max_vessels_available_charter,
         'distance_base_OWF': distance_base_OWF,
-        'technicians_available': technicians_available,
+        # 'technicians_available': technicians_available,
         'capacity_base_for_vessels': capacity_base_for_vessels,
         'capacity_vessel_for_technicians': capacity_vessel_for_technicians,
         'failure_rate': failure_rate,
@@ -127,7 +131,10 @@ def create_parameters(data, sets, year):
         'parts_required': parts_required,
         'max_part_capacity': max_part_capacity,
         'reorder_level': reorder_level,
-        'big_m': big_M
+        'big_m': big_M,
+        'max_capacity_for_docking': max_capacity_for_docking,
+        'additional_time': additional_time,
+        'tech_standby_cost': tech_standby_cost
     }
 
     return params
