@@ -2,7 +2,7 @@ from gurobipy import *
 from utils.utils import *
 from utils.plotting import plot_parts_vars
 import time
-import pickle
+
 
 
 def results(model, sets, params, vars, start_time):
@@ -84,6 +84,6 @@ def results(model, sets, params, vars, start_time):
         print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
 
         # Make plots of spare parts
-        plot_parts_vars(vars, sets, params)
+        plot_parts_vars(vars, params, sets)
 
     print("--- %s seconds ---" % (time.time() - start_time))

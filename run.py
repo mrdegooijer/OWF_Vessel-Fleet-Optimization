@@ -43,7 +43,7 @@ def main():
     # GRASP algorithm
     GRASP(model, sets, params, vars, start_time)
     model.write("solution_dG25_SE.sol")
-
+    print("--- %s seconds ---" % (time.time() - start_time))
     # Return the results
     results(model, sets, params, vars, start_time)
 
