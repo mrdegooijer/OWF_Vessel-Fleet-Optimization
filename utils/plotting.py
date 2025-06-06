@@ -24,5 +24,6 @@ def plot_parts_vars(vars, params, sets):
             plt.plot(periods, [reorder_level[s, b] for p in periods], label='Reorder Level', linestyle='--')
             plt.legend()
             plt.show()
+            plt.savefig(f"plots/spare_part_{s}_base_{b}.png")
 
 
