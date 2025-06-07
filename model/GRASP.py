@@ -86,12 +86,6 @@ def GRASP(model, sets, params, vars, start_time):
     # --- 5. --- Optimize for initial solution (starting point)
     model.optimize()
 
-    # print('Objective value:', model.objVal)
-    # print('Base use:', {b: base_use[b].X for b in bases})
-    # print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
-    # print('Chartered vessels:',
-    #       {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
-
     # ========== TABU SEARCH ==========
     # --- 6. --- Create solution vector
     iteration = 0                   # initial solution
