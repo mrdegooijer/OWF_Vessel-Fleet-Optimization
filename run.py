@@ -13,9 +13,13 @@ from model.GRASP import GRASP
 from utils.results import results
 from gurobipy import *
 import time
+import os
 
 
 def main():
+    # Create directory plots if it does not exist
+    os.makedirs('plots', exist_ok=True)
+
     # Initiate time tracking
     start_time = time.time()
 
