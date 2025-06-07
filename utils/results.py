@@ -8,25 +8,27 @@ import pickle
 def results(model, sets, params, vars, start_time):
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
+     mother_vessels, locations) = unpack_sets(sets)
 
     # Unpack parameters
     (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
      cost_vessel_operation, cost_technicians, cost_downtime,
      penalty_preventive_late, penalty_not_performed, vessel_speed,
      transfer_time, max_time_offshore, max_vessels_available_charter,
-     distance_base_OWF, technicians_available, capacity_base_for_vessels,
+     distance_base_OWF, capacity_base_for_vessels,
      capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
      technicians_required_task, latest_period_to_perform_task,
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-     reorder_level, big_m) = unpack_parameters(params)
+     reorder_level, big_m, max_capacity_for_docking,
+     additional_time, tech_standby_cost) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
      periods_late, hours_spent, inventory_level, order_quantity,
-     order_trigger) = unpack_variables(vars)
+     order_trigger, docking_available, mv_offshore, technicians_available) = unpack_variables(vars)
 
 
     if model.status == GRB.Status.INFEASIBLE:
@@ -36,26 +38,15 @@ def results(model, sets, params, vars, start_time):
 
     elif model.status == GRB.Status.OPTIMAL:
         # Calculate the cost elements of the objective function
-        # obj_cost_bases = quicksum(cost_base_operation[b] * base_use[b] for b in bases).getValue()
         obj_cost_bases = sum(cost_base_operation[b] * base_use[b].x for b in bases)
-        # obj_cost_purchase_vessel = quicksum(cost_vessel_purchase[v] * purchased_vessels[b, v] for v in vessels for b in bases).getValue()
         obj_cost_purchase_vessel = sum(cost_vessel_purchase[v] * purchased_vessels[b, v].x for v in vessels for b in bases)
-        # obj_cost_charter_vessel = quicksum(cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p] for v in vessels for b in bases for p in charter_periods).getValue()
         obj_cost_charter_vessel = sum(cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p].x for v in vessels for b in bases for p in charter_periods)
-        # obj_cost_operations = quicksum(hours_spent[b, v, p, m] * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in bases for v in vessels for p in periods for m in tasks).getValue()
         obj_cost_operations = sum(hours_spent[b, v, p, m].x * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in bases for v in vessels for p in periods for m in tasks)
-        # obj_cost_downtime_preventive = quicksum(cost_downtime[p] * time_to_perform_task[m] * task_performed[b, v, p, m] for b in bases for v in vessels for p in periods for m in prev_tasks).getValue()
         obj_cost_downtime_preventive = sum(cost_downtime[p] * time_to_perform_task[m] * task_performed[b, v, p, m].x for b in bases for v in vessels for p in periods for m in prev_tasks)
-        # obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[b, v, p, m] * (distance_base_OWF[b] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m] * 24) for b in bases for v in vessels for p in periods for m in corr_tasks).getValue()
         obj_cost_downtime_corrective = sum(cost_downtime[p] * (task_performed[b, v, p, m].x * (distance_base_OWF[b] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m].x * 24) for b in bases for v in vessels for p in periods for m in corr_tasks)
-        # obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks).getValue()
         obj_cost_penalty_late = sum(penalty_preventive_late * tasks_late[m].x for m in prev_tasks)
-        # obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks).getValue()
         obj_cost_penalty_not_performed = sum(penalty_not_performed * tasks_not_performed[m].x for m in tasks)
-        # obj_spare_parts_cost = quicksum(holding_cost[s, b] * inventory_level[s, b, p] + order_cost[s] * order_quantity[s, b, p] for s in spare_parts for b in bases for p in periods).getValue()
         obj_cost_spare_parts = sum(holding_cost[s, b] * inventory_level[s, b, p].x + order_cost[s] * order_quantity[s, b, p].x for s in spare_parts for b in bases for p in periods)
-
-
 
 
         # Print the vessels purchased and chartered at each base
@@ -84,6 +75,6 @@ def results(model, sets, params, vars, start_time):
         print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
 
         # Make plots of spare parts
-        plot_parts_vars(vars, sets, params)
+        plot_parts_vars(vars, params, sets)
 
     print("--- %s seconds ---" % (time.time() - start_time))

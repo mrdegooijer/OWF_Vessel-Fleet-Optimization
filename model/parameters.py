@@ -19,6 +19,7 @@ def create_parameters(data, sets, year):
     data['holding_costs'].set_index(data['holding_costs'].columns[0], inplace=True)
     data['max_capacity'].set_index(data['max_capacity'].columns[0], inplace=True)
     data['reorder_level'].set_index(data['reorder_level'].columns[0], inplace=True)
+    data['locations'].set_index('SET', inplace=True)
 
     # Cost Parameters
     cost_base_operation = data['bases']['cost']

@@ -76,11 +76,11 @@ def create_variables(model, sets, params):
     technicians_available = model.addVars(locations, periods, lb=0, vtype=GRB.INTEGER, name="technicians_available")
 
     # Initial values
-    for b in bases:
+    for e in locations:
         for v in vessels:
             for m in tasks:
-                task_performed[b, v, 0, m] = 0
-                hours_spent[b, v, 0, m] = 0
+                task_performed[e, v, 0, m] = 0
+                hours_spent[e, v, 0, m] = 0
 
 
     vars = {
