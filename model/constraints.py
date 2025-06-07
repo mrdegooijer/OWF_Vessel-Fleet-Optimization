@@ -139,7 +139,7 @@ def add_constraints(model, sets, params, vars):
         for m in tasks:
             for p in periods:
                 for b in bases:
-                    model.addConstr(quicksum(parts_required[m, s] * task_performed[b, v, p, m] for v in vessels) <= inventory_level[s, b, p], name=f"parts_required_for_maintenance_tasks_{s},{m},{p}")
+                    model.addConstr(quicksum(parts_required[m, s] * task_performed[b, v, p, m] for v in vessels) <= inventory_level[s, b, p], name=f"parts_required_for_maintenance_tasks_{s},{m},{p},{b}")
 
     # Constraint 18: Maximum part capacity
     for s in spare_parts:
