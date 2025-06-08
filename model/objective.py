@@ -37,7 +37,7 @@ def add_objective_function(model, sets, params, vars):
     obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
     obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
     obj_spare_parts_cost = quicksum(holding_cost[s, e] * inventory_level[s, e, p] + order_cost[s] * order_quantity[s, e, p] for s in spare_parts for e in locations for p in periods)
-
+    obj_cost_mv_operations = quicksum(cost_vessel_operation[v] * mv_offshore[v, p] for v in mother_vessels for p in periods)
 
     model.setObjective(
         obj_cost_bases
@@ -49,5 +49,6 @@ def add_objective_function(model, sets, params, vars):
         + obj_cost_penalty_late
         + obj_cost_penalty_not_performed
         + obj_spare_parts_cost,
+        + obj_cost_mv_operations,
         GRB.MINIMIZE
     )
