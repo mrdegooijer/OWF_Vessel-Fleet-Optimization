@@ -1,4 +1,3 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_parts_vars(vars, params, sets):
@@ -21,4 +20,4 @@ def plot_parts_vars(vars, params, sets):
             plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle='--')
             plt.legend()
             plt.savefig(f"plots/spare_part_{s}_locations_{e}.png")
-            # plt.show()
+            plt.close()

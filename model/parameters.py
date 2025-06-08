@@ -7,8 +7,8 @@ def create_parameters(data, sets, year):
     """
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
-            mother_vessels, locations) = unpack_sets(sets)
+     prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
+     mother_vessels, ctvessels, locations) = unpack_sets(sets)
 
     # Set index for dataframes
     data['bases'].set_index('SET', inplace=True)
@@ -44,7 +44,7 @@ def create_parameters(data, sets, year):
 
     # Base Parameters
     distance_base_OWF = data['locations']['distance']
-    # technicians_available = data['bases']['technicians_available']
+    technicians_available = data['locations']['technicians_available']
 
     # Capacity Parameters
     capacity_base_for_vessels = {
@@ -116,7 +116,7 @@ def create_parameters(data, sets, year):
         'max_time_offshore': max_time_offshore,
         'max_vessels_available_charter': max_vessels_available_charter,
         'distance_base_OWF': distance_base_OWF,
-        # 'technicians_available': technicians_available,
+        'technicians_available': technicians_available,
         'capacity_base_for_vessels': capacity_base_for_vessels,
         'capacity_vessel_for_technicians': capacity_vessel_for_technicians,
         'failure_rate': failure_rate,

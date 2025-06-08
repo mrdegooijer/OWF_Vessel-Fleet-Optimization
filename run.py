@@ -49,8 +49,8 @@ def main():
     model.optimize()
     # GRASP algorithm
     # GRASP(model, sets, params, vars, start_time)
+
     model.write("solution_dG25_ME-noGRASP.sol")
-    print('--- Seconds elapsed: %s ---' % (time.time() - start_time))
     # Return the results
     results(model, sets, params, vars, start_time)
 
