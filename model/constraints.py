@@ -205,15 +205,14 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= max_capacity_for_docking[e]*mv_offshore[e, p], name=f"27.mothervessel_docking_capacity_{e},{p}")
 
-    # # Constraint 23: Mothervessel status
-    # for e in mother_vessels:
-    #     for p in periods:
-    #         model.addConstr(docking_available[e, p] <= mv_offshore[e, p], name=f"mothervessel_status_{e},{p}")
-    
     # Constraint 28: Mothervessel maximum time offshore
     for e in mother_vessels:
         for p in range(1, periods[-1]+1 - max_time_offshore[e]):
             model.addConstr(quicksum(mv_offshore[e, q] for q in range(p, p + max_time_offshore[e] + 1)) <= max_time_offshore[e], name=f"28.mothervessel_max_time_offshore_{e},{p}")
 
+    # Constraint 29: Mothervessel offshore status
+    for e in mother_vessels:
+        for p in periods:
+            model.addConstr(mv_offshore[e, p] <= quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"29.mothervessel_offshore_status_{e},{p}")
 
     model.update()
