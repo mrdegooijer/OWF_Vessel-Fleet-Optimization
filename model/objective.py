@@ -48,7 +48,7 @@ def add_objective_function(model, sets, params, vars):
         + obj_cost_downtime_corrective
         + obj_cost_penalty_late
         + obj_cost_penalty_not_performed
-        + obj_spare_parts_cost,
+        + obj_spare_parts_cost
         + obj_cost_mv_operations,
         GRB.MINIMIZE
     )
