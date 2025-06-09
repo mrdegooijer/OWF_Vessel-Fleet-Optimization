@@ -213,8 +213,9 @@ def add_constraints(model, sets, params, vars):
 
     # Constraint 30: Mothervessel maximum time offshore
     for e in mother_vessels:
-        for p in range(1, periods[-1]+1 - max_time_offshore[e]):
-            model.addConstr(quicksum(mv_offshore[e, q] for q in range(p, p + max_time_offshore[e] + 1)) <= max_time_offshore[e], name=f"30.mothervessel_max_time_offshore_{e},{p}")
+        max_periods_offshore = int(max_time_offshore[e]/24)
+        for p in range(1, periods[-1]+1 - max_periods_offshore):
+            model.addConstr(quicksum(mv_offshore[e, q] for q in range(p, p + max_periods_offshore + 1)) <= max_periods_offshore, name=f"30.mothervessel_max_time_offshore_{e},{p}")
 
     # Constraint 31: Mothervessel offshore status
     for e in mother_vessels:

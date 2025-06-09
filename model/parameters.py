@@ -94,7 +94,13 @@ def create_parameters(data, sets, year):
     }
 
     # Big-M parameter
-    big_M = 10000
+    max_capacity = []
+    for s in spare_parts:
+        for e in locations:
+            max_capacity.append(max_part_capacity[s, e])
+    # big_M = 10000
+    big_M = max(max_capacity)  # Use the maximum capacity as Big-M
+
 
     # Mother Vessel Parameters
     max_capacity_for_docking = data['locations']['max_capacity_for_docking']
