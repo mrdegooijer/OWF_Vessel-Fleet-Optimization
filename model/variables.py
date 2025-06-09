@@ -11,6 +11,27 @@ def create_variables(model, sets, params):
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
      mother_vessels, ctvessels, locations) = unpack_sets(sets)
 
+    # Unpack parameters
+    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
+     cost_vessel_operation, cost_technicians, cost_downtime,
+     penalty_preventive_late, penalty_not_performed, vessel_speed,
+     transfer_time, max_time_offshore, max_vessels_available_charter,
+     distance_base_OWF, technicians_available, capacity_base_for_vessels,
+     capacity_vessel_for_technicians, failure_rate, time_to_perform_task,
+     technicians_required_task, latest_period_to_perform_task,
+     tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
+     order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
+     reorder_level, big_m, max_capacity_for_docking,
+     additional_time, tech_standby_cost) = unpack_parameters(params)
+
+    # Find the highest 'max_part_capacity' for all
+    capacities = []
+    for s in spare_parts:
+        for e in locations:
+            capacities.append(max_part_capacity[s, e])
+    max_capacity = max(capacities)
+
+
     #z_b
     base_use = model.addVars(bases, lb=0, ub=1, vtype=GRB.BINARY, name="base_use")
 
@@ -59,16 +80,16 @@ def create_variables(model, sets, params):
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
 
     # lambda_sevp^P
-    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="lambda_P")
+    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_P")
 
     # lambda_sevp^CH
-    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="lambda_CH")
+    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_CH")
 
     # mu_sevp^P
-    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="mu_P")
+    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_P")
 
     #mu_sevp^CH
-    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="mu_CH")
+    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_CH")
 
     # Initial values
     for e in locations:
