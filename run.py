@@ -46,13 +46,13 @@ def main():
 
     # Add objective function
     add_objective_function(model, sets, params, vars)
-    model.write("model.lp")
+    # model.write("model.lp")
 
-    model.optimize()
+    # model.optimize()
 
 
     # GRASP algorithm
-    # GRASP(model, sets, params, vars, start_time)
+    GRASP(model, sets, params, vars, start_time)
 
     model.write("solution_dG25_ME-GRASP.sol")
     # Return the results

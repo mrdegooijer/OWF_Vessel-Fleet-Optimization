@@ -87,6 +87,7 @@ def GRASP(model, sets, params, vars, start_time):
 
     # --- 5. --- Optimize for initial solution (starting point)
     model.optimize()
+    print("Initial solution objective value:", model.objVal)
 
     # print('Objective value:', model.objVal)
     # print('Base use:', {b: base_use[b].X for b in bases})
@@ -117,6 +118,9 @@ def GRASP(model, sets, params, vars, start_time):
     # Base use
     for b in bases:
         solution[iteration].append(base_use[b].X)
+    print(solution[iteration])
+    exit()
+
 
     objective[iteration] = model.objVal
     best_objective_so_far = []
