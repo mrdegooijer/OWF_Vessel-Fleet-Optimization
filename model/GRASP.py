@@ -64,6 +64,7 @@ def GRASP(model, sets, params, vars, start_time):
             obj_value_pv[v][i] = float('inf')
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
+            print(f"Optimizing for base {b_opt}, purchased vessel {v}, quantity {i}")
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
@@ -80,6 +81,7 @@ def GRASP(model, sets, params, vars, start_time):
                 obj_value_cv[v][p][i] = []
                 chartered_vessels[b_opt, v, p].ub = i
                 chartered_vessels[b_opt, v, p].lb = i
+                print(f"Optimizing for base {b_opt}, chartered vessel {v}, period {p}, quantity {i}")
                 model.optimize()
                 obj_value_cv[v][p][i] = model.objVal
             chartered_vessels[b_opt,v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
@@ -118,7 +120,7 @@ def GRASP(model, sets, params, vars, start_time):
     # Base use
     for b in bases:
         solution[iteration].append(base_use[b].X)
-    print(solution[iteration])
+    print('solution', solution[iteration])
 
 
 
