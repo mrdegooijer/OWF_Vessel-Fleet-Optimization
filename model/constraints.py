@@ -132,7 +132,6 @@ def add_constraints(model, sets, params, vars):
                     # model.addConstr(task_performed[e, v, p, m] == hours_spent[e, v, p, m] / time_to_perform_task[m], name=f"16.time_spent_simplified_{e},{v},{p},{m}")
 
 
-
     # --- Constraints for extensions ---
     # Constraint 17: Inventory balance for bases
     for s in spare_parts:
