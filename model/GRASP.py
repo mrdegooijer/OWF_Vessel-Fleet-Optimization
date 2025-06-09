@@ -27,7 +27,7 @@ def GRASP(model, sets, params, vars, start_time):
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
      periods_late, hours_spent, inventory_level, order_quantity,
-     order_trigger, mv_offshore) = unpack_variables(vars)
+     order_trigger, mv_offshore, lambda_P, lambda_CH, mu_P, mu_CH) = unpack_variables(vars)
 
     # ========== Greedy Construction Algorithm ==========
     # --- 1. --- Set all bases and vessels to zero

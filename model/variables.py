@@ -58,8 +58,17 @@ def create_variables(model, sets, params):
     # d_ep
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
 
-    # N^A_ep
-    # technicians_available = model.addVars(locations, periods, lb=0, vtype=GRB.INTEGER, name="technicians_available")
+    # lambda_sevp^P
+    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="lambda_P")
+
+    # lambda_sevp^CH
+    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="lambda_CH")
+
+    # mu_sevp^P
+    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="mu_P")
+
+    #mu_sevp^CH
+    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="mu_CH")
 
     # Initial values
     for e in locations:
@@ -82,9 +91,11 @@ def create_variables(model, sets, params):
         'inventory_level': inventory_level,
         'order_quantity': order_quantity,
         'order_trigger': order_trigger,
-        # 'docking_available': docking_available,
-        'mv_offshore': mv_offshore
-        # 'technicians_available': technicians_available
+        'mv_offshore': mv_offshore,
+        'lambda_P': lambda_P,
+        'lambda_CH': lambda_CH,
+        'mu_P': mu_P,
+        'mu_CH': mu_CH
     }
 
     return vars

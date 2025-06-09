@@ -94,7 +94,7 @@ def create_parameters(data, sets, year):
     }
 
     # Big-M parameter
-    big_M = 1e9
+    big_M = 10000
 
     # Mother Vessel Parameters
     max_capacity_for_docking = data['locations']['max_capacity_for_docking']
