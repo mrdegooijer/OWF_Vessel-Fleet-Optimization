@@ -68,28 +68,17 @@ def create_variables(model, sets, params):
     inventory_level = model.addVars(spare_parts, locations, periods, lb=0, vtype=GRB.INTEGER, name="inventory_level")
 
     # o_sep
-    order_quantity = model.addVars(spare_parts, locations, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
+    order_quantity = model.addVars(spare_parts, bases, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
+
+    #o_sebp
+    order_quantity_mv = model.addVars(spare_parts, mother_vessels, bases, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity_mv")
 
     # o^trig_sep
     order_trigger = model.addVars(spare_parts, locations, periods, lb=0, ub=1, vtype=GRB.BINARY, name="order_trigger")
 
-    # w_ep 
-    # docking_available = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="docking_available")
-
     # d_ep
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
 
-    # lambda_sevp^P
-    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_P")
-
-    # lambda_sevp^CH
-    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_CH")
-
-    # mu_sevp^P
-    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_P")
-
-    #mu_sevp^CH
-    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_CH")
 
     # Initial values
     for e in locations:
@@ -113,10 +102,7 @@ def create_variables(model, sets, params):
         'order_quantity': order_quantity,
         'order_trigger': order_trigger,
         'mv_offshore': mv_offshore,
-        'lambda_P': lambda_P,
-        'lambda_CH': lambda_CH,
-        'mu_P': mu_P,
-        'mu_CH': mu_CH
+        'order_quantity_mv': order_quantity_mv
     }
 
     return vars
