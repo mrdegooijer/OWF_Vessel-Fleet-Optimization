@@ -31,7 +31,7 @@ def generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, input_t
 def generate_task_bundles(tasks):
     bundle_dict = {}
     bundle_id = 1
-    for i in range(1, 4):  # bundle sizes 1 to 3
+    for i in range(1, 5):  # bundle sizes 1 to 4
         for combo in itertools.product(tasks, repeat=i):
             bundle_name = f'K{bundle_id}'
             bundle_dict[bundle_name] = combo
