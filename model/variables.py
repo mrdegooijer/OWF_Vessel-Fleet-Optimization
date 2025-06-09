@@ -59,16 +59,16 @@ def create_variables(model, sets, params):
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
 
     # lambda_sevp^P
-    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="lambda_P")
+    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="lambda_P")
 
     # lambda_sevp^CH
-    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="lambda_CH")
+    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="lambda_CH")
 
     # mu_sevp^P
-    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="mu_P")
+    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="mu_P")
 
     #mu_sevp^CH
-    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, vtype=GRB.INTEGER, name="mu_CH")
+    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=100, vtype=GRB.CONTINUOUS, name="mu_CH")
 
     # Initial values
     for e in locations:

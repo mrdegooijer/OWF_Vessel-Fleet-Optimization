@@ -119,7 +119,7 @@ def GRASP(model, sets, params, vars, start_time):
     for b in bases:
         solution[iteration].append(base_use[b].X)
     print(solution[iteration])
-    exit()
+
 
 
     objective[iteration] = model.objVal
