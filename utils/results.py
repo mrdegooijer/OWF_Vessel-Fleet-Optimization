@@ -1,5 +1,6 @@
 from gurobipy import *
 from utils.utils import *
+from utils.initial_values import *
 from utils.plotting import plot_parts_vars
 import time
 import pickle
@@ -22,7 +23,7 @@ def results(model, sets, params, vars, start_time):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost) = unpack_parameters(params)
+     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
@@ -47,7 +48,7 @@ def results(model, sets, params, vars, start_time):
         obj_cost_penalty_late = sum(penalty_preventive_late * tasks_late[m].x for m in prev_tasks)
         obj_cost_penalty_not_performed = sum(penalty_not_performed * tasks_not_performed[m].x for m in tasks)
         obj_cost_spare_parts = sum(holding_cost[s, b] * inventory_level[s, b, p].x + order_cost[s] * order_quantity[s, b, p].x for s in spare_parts for b in bases for p in periods)
-
+        obj_cost_mothervessels = sum(cost_vessel_operation[v] * mv_offshore[v, p].x for v in mother_vessels for p in periods)
 
         # Print the vessels purchased and chartered at each base
         for b in bases:
@@ -73,6 +74,20 @@ def results(model, sets, params, vars, start_time):
         print(f"Cost of penalties for late tasks: {obj_cost_penalty_late:.2f}")
         print(f"Cost of penalties for not performed tasks: {obj_cost_penalty_not_performed:.2f}")
         print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
+        print(f"Cost of mothervessel operations: {obj_cost_mothervessels:.2f}")
+
+        # for s in spare_parts:
+        #     for e in mother_vessels:
+        #         p = 1
+        #         print(f"order quantity of spare part {s} at mother vessel {e} in period {p} = {order_quantity[s, e, p].x}")
+        #         print(f"27.order quantity of spare part {s} at mother vessel {e} in period {p} <= {sum(mu_P[s, b, e, p].x + mu_CH[s, b, e, p].x for b in bases)}")
+        #         print(f"26.order quantity of spare part {s} at mother vessel {e} in period {p} <= {big_m * order_trigger[s, e, p].x}")
+        #         print(f"25.order quantity of spare part {s} at mother vessel {e} in period {p} >= {(max_part_capacity[s, e] - inventory_level[s, e, p].x) - big_m*(1-order_trigger[s, e, p].x)}")
+        #         print(f"24.order quantity of spare part {s} at mother vessel {e} in period {p} <= {(max_part_capacity[s, e] - inventory_level[s, e, p].x) + big_m*(1-order_trigger[s, e, p].x)}")
+        #         print(f"19.order quantity of spare part {s} at mother vessel {e} in period {p} <= {big_m * (1-mv_offshore[e, p].x)}")
+        #         print(f"18.inventory level of spare part {s} at mother vessel {e} in period {p}  {inventory_level[s, e, p].x} == {get_inventory_level(s, e, p-1, inventory_level, initial_inventory)} + {order_quantity[s, e, p].x} - {sum(parts_required[m, s] * task_performed[e, v, p, m].x for v in ctvessels for m in tasks)}")
+
+
 
         # Make plots of spare parts
         plot_parts_vars(vars, params, sets)

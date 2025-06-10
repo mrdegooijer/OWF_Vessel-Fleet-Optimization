@@ -18,7 +18,7 @@ def add_objective_function(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost) = unpack_parameters(params)
+     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
@@ -36,7 +36,7 @@ def add_objective_function(model, sets, params, vars):
     obj_cost_downtime_corrective = quicksum(cost_downtime[p] * (task_performed[e, v, p, m] * (distance_base_OWF[e]/vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m]*24) for e in locations for v in ctvessels for p in periods for m in corr_tasks) #multiply with 24 because cost is per hour
     obj_cost_penalty_late = quicksum(penalty_preventive_late * tasks_late[m] for m in prev_tasks)
     obj_cost_penalty_not_performed = quicksum(penalty_not_performed * tasks_not_performed[m] for m in tasks)
-    obj_spare_parts_cost = quicksum(holding_cost[s, e] * inventory_level[s, e, p] + order_cost[s] * order_quantity[s, e, p] for s in spare_parts for e in locations for p in periods)
+    obj_spare_parts_cost = quicksum(holding_cost[s, e] * inventory_level[s, e, p] for s in spare_parts for e in locations for p in periods) + quicksum(order_cost[s] * order_quantity[s, e, p] for s in spare_parts for e in bases for p in periods)
     obj_cost_mv_operations = quicksum(cost_vessel_operation[v] * mv_offshore[v, p] for v in mother_vessels for p in periods)
 
     model.setObjective(

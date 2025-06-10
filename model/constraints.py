@@ -30,7 +30,7 @@ def add_constraints(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost) = unpack_parameters(params)
+     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
@@ -81,10 +81,10 @@ def add_constraints(model, sets, params, vars):
                     model.addConstr(technicians_required_bundle[k] * bundle_performed[e, v, p, k] <= capacity_vessel_for_technicians[v] * bundle_performed[e, v, p , k], name= f"7.vessel_capacity_for_technicians_{e},{v},{p},{k}")
 
     # Constraint 8: Tasks performed limited by number of vessels available
-    for b in bases:
+    for e in locations:
         for v in ctvessels:
             for p in periods:
-                model.addConstr(quicksum(bundle_performed[b, v, p, k] for k in bundles) <= purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)], name=f"8.tasks_performed_limit_{b},{v},{p}")
+                model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= quicksum(purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)] for b in bases), name=f"8.tasks_performed_limit_{b},{v},{p}")
 
     # Constraint 9: Tasks performed late
     for m in prev_tasks:
@@ -97,6 +97,13 @@ def add_constraints(model, sets, params, vars):
             for v in [v for v in ctvessels if v not in vessel_task_compatibility[m]]:
                 for p in periods:
                     model.addConstr(task_performed[e, v, p, m] == 0, name=f"10.vessel_task_compatibility_{e},{v},{p},{m}")
+
+    # Test constraint
+    # for e in bases:
+    #     for m in tasks:
+    #         for v in ctvessels:
+    #             for p in periods:
+    #                 model.addConstr(task_performed[e, v, p, m] ==0, name=f"test_reorder_mothervessels_{e},{v},{p},{m}")
 
     # Constraint 11: Perform scheduled preventive tasks
     for m in prev_tasks:
@@ -137,15 +144,16 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for e in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, max_part_capacity) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17.inventory_balance_bases_{s},{e},{p}")
-
+                # model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17.inventory_balance_bases_{s},{e},{p}")
+                model.addGenConstrIndicator(base_use[e], 1, inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17a.inventory_balance_bases_{s},{e},{p}")
+                model.addGenConstrIndicator(base_use[e], 0, inventory_level[s, e, p] == 0, name=f"17b.inventory_balance_bases_{s},{e},{p}")
 
     # Constraint 18: Inventory balance for mothervessels & Constraint 19: order quantity big m
     for s in spare_parts:
         for e in mother_vessels:
             for p in periods:
                 # Constraint 18
-                model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, max_part_capacity) + order_quantity[s, e, p] - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels), name=f"18.inventory_balance_mothervessels_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-1, order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels), name=f"18.inventory_balance_mothervessels_{s},{e},{p}")
                 # Constraint 19
                 model.addConstr(order_quantity[s, e, p] <= big_m * (1-mv_offshore[e, p]), name=f"19.order_quantity_mv_{s},{e},{p}")
 
@@ -156,7 +164,7 @@ def add_constraints(model, sets, params, vars):
                 for e in locations:
                     model.addConstr(quicksum(parts_required[m, s] * task_performed[e, v, p, m] for v in ctvessels) <= inventory_level[s, e, p], name=f"20.parts_required_for_maintenance_tasks_{s},{m},{p},{e}")
 
-    # Constraint 21: Maximum part capacity
+    # Constraint 21a: Maximum part capacity
     for s in spare_parts:
         for e in locations:
             for p in periods:
@@ -172,7 +180,7 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for e in locations:
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] - big_m * order_trigger[s, e, p], name=f"23.order_trigger_deactivate_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"23.order_trigger_deactivate_{s},{e},{p}")
 
     # Constraint 24 - 26
     for s in spare_parts:
@@ -190,14 +198,18 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 # Constraint 24 (also for mothervessels)
                 model.addConstr(order_quantity[s, e, p] <= (max_part_capacity[s, e] - inventory_level[s, e, p]) + big_m * (1 - order_trigger[s, e, p]), name=f"24b.order_quantity_(mv)_{s},{e},{p}")
+                # Constraint 25 (also for mothervessels)
+                # model.addConstr(order_quantity[s, e, p] >= (max_part_capacity[s, e] - inventory_level[s, e, p]) - big_m * (1 - order_trigger[s, e, p]), name=f"25b.order_quantity_(mv)_{s},{e},{p}")
                 # Constraint 26 (also for mothervessels)
                 model.addConstr(order_quantity[s, e, p] <= big_m * order_trigger[s, e, p], name=f"26b.order_quantity_(mv)_{s},{e},{p}")
+
+
 
     # Constraint 27: Order quantity (mothervessels) base inventory limit
     for s in spare_parts:
         for e in mother_vessels:
             for p in periods:
-                model.addConstr(order_quantity[s, e, p] <= quicksum(mu_P[s, b, e, p] + mu_CH[s, b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"27.order_quantity_base_limit_(MV)_{s},{e},{p}")
+                model.addConstr(order_quantity[s, e, p] <= quicksum(mu_P[s, b, e, p] + mu_CH[s, b, e, p] for b in bases), name=f"27.order_quantity_base_limit_(MV)_{s},{e},{p}")
 
     # Constraint 28: Max one mothervessel per type
     for v in mother_vessels:
@@ -227,11 +239,11 @@ def add_constraints(model, sets, params, vars):
             for v in mother_vessels:
                 for p in periods:
                     # Constraint 32
-                    model.addGenConstrIndicator(purchased_vessels[e, v], 1, lambda_P[s, e, v, p] == order_quantity[s, e, p], name=f"32a.aux_var_lambda_P_{s},{e},{v},{p}")
+                    model.addGenConstrIndicator(purchased_vessels[e, v], 1, lambda_P[s, e, v, p] == order_quantity[s, v, p], name=f"32a.aux_var_lambda_P_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(purchased_vessels[e, v], 0, lambda_P[s, e, v, p] == 0, name=f"32b.aux_var_lambda_P_{s},{e},{v},{p}")
 
                     #Constraint 33
-                    model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 1, lambda_CH[s, e, v, p] == order_quantity[s, e, p], name=f"33a.aux_var_lambda_CH_{s},{e},{v},{p}")
+                    model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 1, lambda_CH[s, e, v, p] == order_quantity[s, v, p], name=f"33a.aux_var_lambda_CH_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 0, lambda_CH[s, e, v, p] == 0, name=f"33b.aux_var_lambda_CH_{s},{e},{v},{p}")
 
                     # Constraint 34

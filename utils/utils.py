@@ -105,7 +105,8 @@ def unpack_parameters(params):
     big_m = params['big_m']
     max_capacity_for_docking = params['max_capacity_for_docking']
     additional_time = params['additional_time']  
-    tech_standby_cost = params['tech_standby_cost']  
+    tech_standby_cost = params['tech_standby_cost']
+    initial_inventory = params['initial_inventory']
 
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
@@ -118,7 +119,7 @@ def unpack_parameters(params):
             tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
             order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
             reorder_level, big_m, max_capacity_for_docking,
-            additional_time, tech_standby_cost)
+            additional_time, tech_standby_cost, initial_inventory)
 
 def unpack_variables(vars):
     """

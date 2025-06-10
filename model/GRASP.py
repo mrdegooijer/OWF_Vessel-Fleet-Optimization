@@ -22,7 +22,7 @@ def GRASP(model, sets, params, vars, start_time):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost) = unpack_parameters(params)
+     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
 
     (base_use, purchased_vessels, chartered_vessels, task_performed,
      bundle_performed, tasks_late, tasks_not_performed,
@@ -41,7 +41,7 @@ def GRASP(model, sets, params, vars, start_time):
     # --- 2. --- Choose optimal (cheapest) base
     obj_value_b = {}
     for b in bases:
-        obj_value_b[b] = []
+        obj_value_b[b] = float('inf')
         base_use[b].lb = 1
         base_use[b].ub = 1
         model.optimize()
@@ -68,6 +68,11 @@ def GRASP(model, sets, params, vars, start_time):
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
+            elif model.status == GRB.Status.INFEASIBLE:
+                model.computeIIS()
+                model.write("infeasible.ilp")
+                print("Model is infeasible. IIS written to 'infeasible.ilp'.")
+                return
         purchased_vessels[b_opt, v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
         purchased_vessels[b_opt, v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
 
@@ -89,6 +94,11 @@ def GRASP(model, sets, params, vars, start_time):
 
     # --- 5. --- Optimize for initial solution (starting point)
     model.optimize()
+    if model.status == GRB.Status.INFEASIBLE:
+        model.computeIIS()
+        model.write("infeasible.ilp")
+        print("Model is infeasible. IIS written to 'infeasible.ilp'.")
+        return
     print("Initial solution objective value:", model.objVal)
 
     # print('Objective value:', model.objVal)

@@ -22,7 +22,7 @@ def create_variables(model, sets, params):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost) = unpack_parameters(params)
+     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
 
     # Find the highest 'max_part_capacity' for all
     capacities = []
@@ -78,6 +78,8 @@ def create_variables(model, sets, params):
 
     # d_ep
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
+    for v in mother_vessels:
+        mv_offshore[v, 1].ub = 0
 
     # lambda_sevp^P
     lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_P")

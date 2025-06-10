@@ -92,6 +92,7 @@ def create_parameters(data, sets, year):
         (s, e): data['reorder_level'].at[s, e]
         for s in spare_parts for e in locations
     }
+    initial_inventory = data['locations']['initial_inventory']
 
     # Big-M parameter
     max_capacity = []
@@ -99,7 +100,7 @@ def create_parameters(data, sets, year):
         for e in locations:
             max_capacity.append(max_part_capacity[s, e])
     # big_M = 10000
-    big_M = max(max_capacity)  # Use the maximum capacity as Big-M
+    big_M = max(max_capacity)*10  # Use the maximum capacity as Big-M
 
 
     # Mother Vessel Parameters
@@ -141,7 +142,8 @@ def create_parameters(data, sets, year):
         'big_m': big_M,
         'max_capacity_for_docking': max_capacity_for_docking,
         'additional_time': additional_time,
-        'tech_standby_cost': tech_standby_cost
+        'tech_standby_cost': tech_standby_cost,
+        'initial_inventory': initial_inventory
     }
 
     return params
