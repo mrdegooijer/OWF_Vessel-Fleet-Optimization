@@ -90,20 +90,12 @@ def add_constraints(model, sets, params, vars):
     for m in prev_tasks:
         model.addConstr(quicksum(task_performed[e, v, p, m] for e in locations for v in ctvessels for p in range(latest_period_to_perform_task, periods[-1]+1)) == tasks_late[m], name=f"9.tasks_performed_late_{m}")
 
-
     # Constraint 10: Vessel-task compatibility
     for e in locations:
         for m in tasks:
             for v in [v for v in ctvessels if v not in vessel_task_compatibility[m]]:
                 for p in periods:
                     model.addConstr(task_performed[e, v, p, m] == 0, name=f"10.vessel_task_compatibility_{e},{v},{p},{m}")
-
-    # Test constraint
-    # for e in bases:
-    #     for m in tasks:
-    #         for v in ctvessels:
-    #             for p in periods:
-    #                 model.addConstr(task_performed[e, v, p, m] ==0, name=f"test_reorder_mothervessels_{e},{v},{p},{m}")
 
     # Constraint 11: Perform scheduled preventive tasks
     for m in prev_tasks:
@@ -144,7 +136,6 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for e in bases:
             for p in periods:
-                # model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17.inventory_balance_bases_{s},{e},{p}")
                 model.addGenConstrIndicator(base_use[e], 1, inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17a.inventory_balance_bases_{s},{e},{p}")
                 model.addGenConstrIndicator(base_use[e], 0, inventory_level[s, e, p] == 0, name=f"17b.inventory_balance_bases_{s},{e},{p}")
 
@@ -164,7 +155,7 @@ def add_constraints(model, sets, params, vars):
                 for e in locations:
                     model.addConstr(quicksum(parts_required[m, s] * task_performed[e, v, p, m] for v in ctvessels) <= inventory_level[s, e, p], name=f"20.parts_required_for_maintenance_tasks_{s},{m},{p},{e}")
 
-    # Constraint 21a: Maximum part capacity
+    # Constraint 21: Maximum part capacity
     for s in spare_parts:
         for e in locations:
             for p in periods:
@@ -202,8 +193,6 @@ def add_constraints(model, sets, params, vars):
                 # model.addConstr(order_quantity[s, e, p] >= (max_part_capacity[s, e] - inventory_level[s, e, p]) - big_m * (1 - order_trigger[s, e, p]), name=f"25b.order_quantity_(mv)_{s},{e},{p}")
                 # Constraint 26 (also for mothervessels)
                 model.addConstr(order_quantity[s, e, p] <= big_m * order_trigger[s, e, p], name=f"26b.order_quantity_(mv)_{s},{e},{p}")
-
-
 
     # Constraint 27: Order quantity (mothervessels) base inventory limit
     for s in spare_parts:
