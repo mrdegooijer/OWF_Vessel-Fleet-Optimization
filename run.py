@@ -48,7 +48,7 @@ def main():
     # Optimize the model
     # model.optimize()
     GRASP(model, sets, params, vars, start_time)
-    model.write("solution_dG25_ME-GRASP.sol")
+    model.write("solution_dG25_ME-Verification_Case.sol")
 
     # Return the results
     results(model, sets, params, vars, start_time)
