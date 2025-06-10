@@ -29,7 +29,9 @@ def create_sets(data):
 
     # Extension sets
     spare_parts = data['spare_parts']['SET'].tolist()
-
+    mother_vessels = data['vessels'].loc[data['vessels']['MV'] == 1, 'SET'].tolist()
+    ctvessels = [v for v in vessels if v not in mother_vessels]  # All vessels that are not mother vessels
+    locations = data['locations']['SET'].tolist()
 
     #Create the sets dictionary
     sets['bases'] = bases
@@ -46,5 +48,8 @@ def create_sets(data):
     sets['bundle_dict'] = bundle_dict
     sets['bundles'] = bundles
     sets['spare_parts'] = spare_parts
+    sets['mother_vessels'] = mother_vessels
+    sets['ctvessels'] = ctvessels
+    sets['locations'] = locations
 
     return sets

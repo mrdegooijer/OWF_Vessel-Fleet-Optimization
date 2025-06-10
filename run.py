@@ -1,14 +1,28 @@
+"""
+@author: Mischa de Gooijer
+@date: 2025
+"""
+
 from utils.utils import load_input_data
 from model.sets import create_sets
 from model.parameters import create_parameters
 from model.variables import create_variables
 from model.constraints import add_constraints
 from model.objective import add_objective_function
-from utils.plotting import plot_parts_vars
+from model.GRASP import GRASP
+from utils.results import results
 from gurobipy import *
+import time
+import os
 
 
 def main():
+    # Create directory plots if it does not exist
+    os.makedirs('plots', exist_ok=True)
+
+    # Initiate time tracking
+    start_time = time.time()
+
     # Load input data
     file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
@@ -29,34 +43,15 @@ def main():
 
     # Add objective function
     add_objective_function(model, sets, params, vars)
-
+    # model.write("model.lp")
 
     # Optimize the model
-    model.optimize()
+    # model.optimize()
+    GRASP(model, sets, params, vars, start_time)
+    model.write("solution_dG25_ME-GRASP.sol")
 
-    # model.computeIIS()
-    # model.write("infeasible.ilp")
-
-    # Print the results
-    # if model.status == GRB.OPTIMAL:
-    #     print("Optimal solution found:")
-    #     for v in model.getVars():
-    #         if v.X > 0:
-    #             print(f"{v.VarName}: {v.X}")
-    # else:
-    #     print("No optimal solution found.")
-
-    # Plot the results
-    # plot_parts_vars(vars, sets)
-    #print the inventory levels
-    # for s in sets['spare_parts']:
-    #     for b in sets['bases']:
-    #         for p in sets['periods']:
-    #             print(f"Inventory level of spare part {s} at base {b} in period {p}: {vars['inventory_level'][s, b, p].X}")
-    #             print(f"Order quantity of spare part {s} at base {b} in period {p}: {vars['order_quantity'][s, b, p]}")
-
-    # Plot the inventory level of spare parts
-    plot_parts_vars(vars, sets, input_data)
+    # Return the results
+    results(model, sets, params, vars, start_time)
 
 if __name__ == "__main__":
     main()

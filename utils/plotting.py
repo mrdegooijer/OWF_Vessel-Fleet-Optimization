@@ -1,50 +1,45 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+from utils.initial_values import *
 
-def plot_parts_vars(vars, sets, data):
-    inv = vars['inventory_level']
-    order_q = vars['order_quantity']
-    order_trigger = vars['order_trigger']
-
-    spare_parts = sets['spare_parts']
-    bases = sets['bases']
+def plot_parts_vars(vars, params, sets):
+    # Plot spare parts decision variables
     periods = sets['periods']
+    periods_0 = [0]+list(periods)
+    spare_parts = sets['spare_parts']
+    locations = sets['locations']
+    bases = sets['bases']
+    mother_vessels = sets['mother_vessels']
+    mv_offshore = vars['mv_offshore']
 
-    # data['reorder_level'].set_index(data['reorder_level'].columns[0], inplace=True)
+    reorder_level = params['reorder_level']
 
-    for s in spare_parts:
-        for b in bases:
-            inv_series = [inv[s, b, p].X for p in periods]
-            order_series = [order_q[s, b, p].X for p in periods]
-            trig_series = [order_trigger[s, b, p].X for p in periods]
+    # Create plot for each spare part at each base
+    for e in bases:
+        for s in spare_parts:
+            plt.title(f"Spare Part: {s} at Locations: {e}")
+            plt.xlabel("Period")
+            plt.ylabel("Inventory Level")
+            plt.xticks(periods)
+            plt.grid()
+            plt.plot(periods_0, [params['initial_inventory'][e]] + [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
+            plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle='--')
+            plt.legend()
+            plt.savefig(f"plots/spare_part_{s}_locations_{e}.png")
+            plt.close()
 
-
-            df = pd.DataFrame(
-                {
-                    'Inventory level': inv_series,
-                    'Order quantity': order_series,
-                    'Order trigger': trig_series,
-                },
-                index=periods
-            )
-
-            # Plot the reorder level as a horizontal line
-            reorder_level = data['reorder_level'].loc[(s, b)]
-            df['Reorder level'] = reorder_level
-            df.plot(
-                marker='o',
-                title=f"Spare Part: {s} at Base: {b}",
-                ylabel='Units / binary',
-                xlabel='Period'
-            )
-
-            ax = df.plot(
-                marker='o',
-                title=f"{s} – {b}",
-                ylabel='Units / binary',
-                xlabel='Period'
-            )
-    ax.legend(loc='best')
-    plt.tight_layout()
-    plt.show()
-
+    for e in mother_vessels:
+        for s in spare_parts:
+            plt.title(f"Spare Part: {s} at Locations: {e}")
+            plt.xlabel("Period")
+            plt.ylabel("Inventory Level")
+            plt.xticks(periods)
+            plt.grid()
+            plt.plot(periods, [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
+            plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle='--')
+            plt.legend()
+            for p in periods:
+                if mv_offshore[e, p].X > 0:
+                    # shade the period gray
+                    plt.axvspan(p, p + 1, color='gray', alpha=0.5)
+            plt.savefig(f"plots/spare_part_{s}_locations_{e}.png")
+            plt.close()

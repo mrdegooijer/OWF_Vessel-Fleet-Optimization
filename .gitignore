@@ -178,3 +178,12 @@ cython_debug/
 *.pyo
 .DS_Store
 /infeasible.ilp
+/model_deGooijer.lp
+/Ivana/model_Ivana.lp
+plots/*
+#/plots/spare_part_S1_locations_B1.png
+#/plots/spare_part_S1_locations_B2.png
+#/plots/spare_part_S1_locations_V4.png
+#/plots/spare_part_S2_locations_B1.png
+#/plots/spare_part_S2_locations_B2.png
+#/plots/spare_part_S2_locations_V4.png

@@ -59,9 +59,13 @@ def unpack_sets(sets):
     bundle_dict = sets['bundle_dict']
     bundles = sets['bundles']
     spare_parts = sets['spare_parts']
+    mother_vessels = sets['mother_vessels']
+    ctvessels = sets['ctvessels']
+    locations = sets['locations']
 
     return (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
-            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts)
+            prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
+            mother_vessels, ctvessels, locations)
 
 def unpack_parameters(params):
     """
@@ -99,6 +103,11 @@ def unpack_parameters(params):
     max_part_capacity = params['max_part_capacity']
     reorder_level = params['reorder_level']
     big_m = params['big_m']
+    max_capacity_for_docking = params['max_capacity_for_docking']
+    additional_time = params['additional_time']  
+    tech_standby_cost = params['tech_standby_cost']
+    initial_inventory = params['initial_inventory']
+
 
     return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
             cost_vessel_operation, cost_technicians, cost_downtime,
@@ -109,7 +118,8 @@ def unpack_parameters(params):
             technicians_required_task, latest_period_to_perform_task,
             tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
             order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
-            reorder_level, big_m)
+            reorder_level, big_m, max_capacity_for_docking,
+            additional_time, tech_standby_cost, initial_inventory)
 
 def unpack_variables(vars):
     """
@@ -129,11 +139,16 @@ def unpack_variables(vars):
     inventory_level = vars['inventory_level']
     order_quantity = vars['order_quantity']
     order_trigger = vars['order_trigger']
+    mv_offshore = vars['mv_offshore']
+    lambda_P = vars['lambda_P']
+    lambda_CH = vars['lambda_CH']
+    mu_P = vars['mu_P']
+    mu_CH = vars['mu_CH']
 
     return (base_use, purchased_vessels, chartered_vessels, task_performed,
             bundle_performed, tasks_late, tasks_not_performed,
             periods_late, hours_spent, inventory_level, order_quantity,
-            order_trigger)
+            order_trigger, mv_offshore, lambda_P, lambda_CH, mu_P, mu_CH)
 
 def return_charter_period(p, charter_dict):
     """
