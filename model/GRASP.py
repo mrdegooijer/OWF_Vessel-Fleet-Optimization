@@ -139,7 +139,7 @@ def GRASP(model, sets, params, vars, start_time):
     it_objectives[iteration] = [model.objVal]
 
     iteration = 1           # start of the iterations
-    max_it = 15             # maximum number of iterations
+    max_it = 5             # maximum number of iterations
     while iteration < max_it and time.time() - start_time < 3600:       # stopping criteria
         neighbours = []                  # list of neighbours of the current solution
         sol = solution[iteration-1]     # current solution

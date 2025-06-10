@@ -19,9 +19,9 @@ def plot_parts_vars(vars, params, sets):
             plt.title(f"Spare Part: {s} at Locations: {e}")
             plt.xlabel("Period")
             plt.ylabel("Inventory Level")
-            plt.xticks([p - 1 for p in periods[::15]])
+            plt.xticks([p - 1 for p in periods[::15]]+[90])
             plt.grid()
-            plt.plot(periods_0, [params['initial_inventory'][e]] + [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
+            plt.plot(periods, [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
             plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle='--')
             plt.legend()
             plt.savefig(f"plots/spare_part_{s}_locations_{e}.png")
@@ -32,14 +32,14 @@ def plot_parts_vars(vars, params, sets):
             plt.title(f"Spare Part: {s} at Locations: {e}")
             plt.xlabel("Period")
             plt.ylabel("Inventory Level")
-            plt.xticks([p - 1 for p in periods[::15]])
+            plt.xticks([p - 1 for p in periods[::15]]+[90])
             plt.grid()
             plt.plot(periods, [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
             plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle='--')
             plt.legend()
-            for p in periods:
-                if mv_offshore[e, p].X > 0:
-                    # shade the period gray
-                    plt.axvspan(p, p + 1, color='gray', alpha=0.5)
+            # for p in periods:
+            #     if mv_offshore[e, p].X > 0:
+            #         # shade the period gray
+            #         plt.axvspan(p-1, p, color='gray', alpha=0.5, label='Mothervessel Offshore')
             plt.savefig(f"plots/spare_part_{s}_locations_{e}.png")
             plt.close()

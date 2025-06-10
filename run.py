@@ -46,7 +46,9 @@ def main():
     # model.write("model.lp")
 
     # Optimize the model
+    model.setParam('Seed', 2027)
     # model.optimize()
+    model.setParam('Seed', 42)  # Set a seed for reproducibility
     GRASP(model, sets, params, vars, start_time)
     model.write("solution_dG25_ME-Verification_Case.sol")
 
