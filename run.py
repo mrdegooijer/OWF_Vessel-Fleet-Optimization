@@ -46,9 +46,9 @@ def main():
     # model.write("model.lp")
 
     # Optimize the model
-    # model.optimize()
-    GRASP(model, sets, params, vars, start_time)
-    model.write("solution_dG25_ME-GRASP.sol")
+    model.optimize()
+    # GRASP(model, sets, params, vars, start_time)
+    model.write("solution_dG25_ME-noGRASP.sol")
 
     # Return the results
     results(model, sets, params, vars, start_time)
