@@ -22,9 +22,11 @@ def main():
 
     # Initiate time tracking
     start_time = time.time()
+    print('Start Time: ', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time)))
 
     # Load input data
-    file_path = r'data/Inputs.xlsx'
+    file_path = r'data/Inputs_Verification.xlsx'
+    # file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
     # Define the year of the weather data
     year = 2004
@@ -46,9 +48,10 @@ def main():
     # model.write("model.lp")
 
     # Optimize the model
-    model.setParam('Seed', 2027)
-    # model.optimize()
+    # model.setParam('Seed', 2027)
+
     model.setParam('Seed', 42)  # Set a seed for reproducibility
+    # model.optimize()
     GRASP(model, sets, params, vars, start_time)
     model.write("solution_dG25_ME-Verification_Case.sol")
 

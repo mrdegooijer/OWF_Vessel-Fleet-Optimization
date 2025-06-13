@@ -136,6 +136,7 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for e in bases:
             for p in periods:
+                # model.addConstr(inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-1, order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17.inventory_balance_bases_{s},{e},{p}")
                 model.addGenConstrIndicator(base_use[e], 1, inventory_level[s, e, p] == get_inventory_level(s, e, p-1, inventory_level, initial_inventory) + get_order_quantity(s, e, p-lead_time[s], order_quantity) - quicksum(parts_required[m, s] * task_performed[e, v, p, m] for m in tasks for v in ctvessels) - quicksum(lambda_P[s, e, v, p] + lambda_CH[s, e, v, p] for v in mother_vessels), name=f"17a.inventory_balance_bases_{s},{e},{p}")
                 model.addGenConstrIndicator(base_use[e], 0, inventory_level[s, e, p] == 0, name=f"17b.inventory_balance_bases_{s},{e},{p}")
 
@@ -163,15 +164,30 @@ def add_constraints(model, sets, params, vars):
 
     # Constraint 22: Order trigger activate
     for s in spare_parts:
-        for e in locations:
+        for e in mother_vessels: #or mothervessels
             for p in periods:
                 model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]), name=f"22.order_trigger_activate_{s},{e},{p}")
+        for e in bases:
+            for p in periods:
+                model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]) + big_m * (1-base_use[e]), name=f"22a.order_trigger_activate_{s},{e},{p}")
 
+        # for e in bases:
+        #     for p in periods:
+        #         model.addGenConstrIndicator(base_use[e], 1, inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]), name=f"22a.order_trigger_activate_{s},{e},{p}")
+        #         model.addGenConstrIndicator(base_use[e], 0, order_trigger[s, e, p] == 0, name=f"22b.order_trigger_activate_{s},{e},{p}")
     # Constraint 23: Order trigger deactivate
     for s in spare_parts:
-        for e in locations:
+        for e in mother_vessels: #or mothervessels
             for p in periods:
                 model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"23.order_trigger_deactivate_{s},{e},{p}")
+        for e in bases:
+            for p in periods:
+                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p] - big_m * (1-base_use[e]), name=f"23a.order_trigger_deactivate_{s},{e},{p}")
+        # for e in bases:
+        #     for p in periods:
+        #         model.addGenConstrIndicator(base_use[e], 1, inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"23a.order_trigger_deactivate_{s},{e},{p}")
+        #         model.addGenConstrIndicator(base_use[e], 0, order_trigger[s, e, p] == 0, name=f"23b.order_trigger_deactivate_{s},{e},{p}")
+
 
     # Constraint 24 - 26
     for s in spare_parts:
@@ -231,7 +247,7 @@ def add_constraints(model, sets, params, vars):
                     model.addGenConstrIndicator(purchased_vessels[e, v], 1, lambda_P[s, e, v, p] == order_quantity[s, v, p], name=f"32a.aux_var_lambda_P_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(purchased_vessels[e, v], 0, lambda_P[s, e, v, p] == 0, name=f"32b.aux_var_lambda_P_{s},{e},{v},{p}")
 
-                    #Constraint 33
+                    # Constraint 33
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 1, lambda_CH[s, e, v, p] == order_quantity[s, v, p], name=f"33a.aux_var_lambda_CH_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 0, lambda_CH[s, e, v, p] == 0, name=f"33b.aux_var_lambda_CH_{s},{e},{v},{p}")
 
@@ -242,5 +258,26 @@ def add_constraints(model, sets, params, vars):
                     # Constraint 35
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 1, mu_CH[s, e, v, p] == inventory_level[s, e, p], name=f"35a.aux_var_mu_CH_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 0, mu_CH[s, e, v, p] == 0, name=f"35b.aux_var_mu_CH_{s},{e},{v},{p}")
+
+    for s in spare_parts:
+        for e in bases:
+            for p in periods:
+                # Constraint 36: No inventory when no base use
+                model.addConstr(inventory_level[s, e, p] <= big_m * base_use[e], name=f"36.no_inventory_when_no_base_use_{s},{e},{p}")
+
+                # Constraint 37: No order quantity when no base use
+                model.addConstr(order_quantity[s, e, p] <= big_m * base_use[e], name=f"37.no_order_quantity_when_no_base_use_{s},{e},{p}")
+
+                model.addConstr(order_trigger[s, e, p] <= base_use[e], name=f"37a.no_order_trigger_when_no_base_use_{s},{e},{p}")
+
+    for s in spare_parts:
+        for e in mother_vessels:
+            for p in periods:
+                # Constraint 38: No inventory when no mothervessel use
+                model.addConstr(inventory_level[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"38.no_inventory_when_no_mothervessel_use_{s},{e},{p}")
+
+                # Constraint 39: No order quantity when no mothervessel use
+                model.addConstr(order_quantity[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"39.no_order_quantity_when_no_mothervessel_use_{s},{e},{p}")
+
 
     model.update()

@@ -68,11 +68,7 @@ def GRASP(model, sets, params, vars, start_time):
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
-            elif model.status == GRB.Status.INFEASIBLE:
-                model.computeIIS()
-                model.write("infeasible.ilp")
-                print("Model is infeasible. IIS written to 'infeasible.ilp'.")
-                return
+
         purchased_vessels[b_opt, v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
         purchased_vessels[b_opt, v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
 
@@ -88,7 +84,8 @@ def GRASP(model, sets, params, vars, start_time):
                 chartered_vessels[b_opt, v, p].lb = i
                 print(f"Optimizing for base {b_opt}, chartered vessel {v}, period {p}, quantity {i}")
                 model.optimize()
-                obj_value_cv[v][p][i] = model.objVal
+                if model.status == GRB.Status.OPTIMAL:
+                    obj_value_cv[v][p][i] = model.objVal
             chartered_vessels[b_opt,v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
             chartered_vessels[b_opt,v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
 
@@ -141,6 +138,7 @@ def GRASP(model, sets, params, vars, start_time):
     iteration = 1           # start of the iterations
     max_it = 15             # maximum number of iterations
     while iteration < max_it and time.time() - start_time < 3600:       # stopping criteria
+        print(f"Starting iteration {iteration}i")
         neighbours = []                  # list of neighbours of the current solution
         sol = solution[iteration-1]     # current solution
         it_move = []                    # move that results in the neighbor
