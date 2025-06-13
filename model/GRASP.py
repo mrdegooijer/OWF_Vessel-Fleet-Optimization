@@ -48,6 +48,10 @@ def GRASP(model, sets, params, vars, start_time):
         if model.status == GRB.Status.OPTIMAL:
             obj_value_b[b] = model.objVal
 
+        #Turn off the base again
+        base_use[b].lb = 0
+        base_use[b].ub = 0
+
     for b in bases:
         base_use[b].lb = 0
         base_use[b].ub = 0
@@ -284,7 +288,7 @@ def GRASP(model, sets, params, vars, start_time):
             for b in bases:
                 l = len(purchased_vessels) + len(chartered_vessels) + bases.index(b)
                 base_use[b].lb = x[l]
-                base_use[b].lb = x[l]       #MISTAKE?
+                base_use[b].ub = x[l]
                 for v in vessels:
                     i = bases.index(b)*len(vessels) + vessels.index(v)
                     purchased_vessels[b, v].lb = x[i]
@@ -320,7 +324,7 @@ def GRASP(model, sets, params, vars, start_time):
     for b in bases:
         l = len(purchased_vessels) + len(chartered_vessels) + bases.index(b)
         base_use[b].lb = final_solution[l]
-        base_use[b].lb = final_solution[l]
+        base_use[b].ub = final_solution[l]
         for v in vessels:
             i = bases.index(b)*len(vessels) + vessels.index(v)
             purchased_vessels[b, v].lb = final_solution[i]
