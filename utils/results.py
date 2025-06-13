@@ -42,13 +42,14 @@ def results(model, sets, params, vars, start_time):
         obj_cost_bases = sum(cost_base_operation[b] * base_use[b].x for b in bases)
         obj_cost_purchase_vessel = sum(cost_vessel_purchase[v] * purchased_vessels[b, v].x for v in vessels for b in bases)
         obj_cost_charter_vessel = sum(cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p].x for v in vessels for b in bases for p in charter_periods)
-        obj_cost_operations = sum(hours_spent[b, v, p, m].x * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for b in bases for v in ctvessels for p in periods for m in tasks)
-        obj_cost_downtime_preventive = sum(cost_downtime[p] * time_to_perform_task[m] * task_performed[b, v, p, m].x for b in bases for v in ctvessels for p in periods for m in prev_tasks)
-        obj_cost_downtime_corrective = sum(cost_downtime[p] * (task_performed[b, v, p, m].x * (distance_base_OWF[b] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m].x * 24) for b in bases for v in ctvessels for p in periods for m in corr_tasks)
+        obj_cost_operations = sum(hours_spent[e, v, p, m].x * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for e in locations for v in ctvessels for p in periods for m in tasks)
+        obj_cost_downtime_preventive = sum(cost_downtime[p] * time_to_perform_task[m] * task_performed[e, v, p, m].x for e in locations for v in ctvessels for p in periods for m in prev_tasks)
+        obj_cost_downtime_corrective = sum(cost_downtime[p] * (task_performed[e, v, p, m].x * (distance_base_OWF[e] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m].x * 24) for e in locations for v in ctvessels for p in periods for m in corr_tasks)
         obj_cost_penalty_late = sum(penalty_preventive_late * tasks_late[m].x for m in prev_tasks)
         obj_cost_penalty_not_performed = sum(penalty_not_performed * tasks_not_performed[m].x for m in tasks)
-        obj_cost_spare_parts = sum(holding_cost[s, b] * inventory_level[s, b, p].x + order_cost[s] * order_quantity[s, b, p].x for s in spare_parts for b in bases for p in periods)
+        obj_cost_spare_parts = sum(holding_cost[s, e] * inventory_level[s, e, p].x for s in spare_parts for e in locations for p in periods) + sum(order_cost[s] * order_quantity[s, e, p].x for s in spare_parts for e in bases for p in periods)
         obj_cost_mothervessels = sum(cost_vessel_operation[v] * mv_offshore[v, p].x for v in mother_vessels for p in periods)
+        total_cost = obj_cost_bases + obj_cost_purchase_vessel + obj_cost_charter_vessel + obj_cost_operations + obj_cost_downtime_preventive + obj_cost_downtime_corrective + obj_cost_penalty_late + obj_cost_penalty_not_performed + obj_cost_spare_parts + obj_cost_mothervessels
 
         # Print the vessels purchased and chartered at each base
         for b in bases:
@@ -59,7 +60,6 @@ def results(model, sets, params, vars, start_time):
                 for p in charter_periods:
                     print('The number of chartered vessels of type ' + str(v) + ' in period ' + str(p) + ' is: %d' %
                           chartered_vessels[b, v, p].x)
-
 
         # Print the objective value
         print(f"Objective value: {model.objVal:.2f}")
@@ -75,19 +75,7 @@ def results(model, sets, params, vars, start_time):
         print(f"Cost of penalties for not performed tasks: {obj_cost_penalty_not_performed:.2f}")
         print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
         print(f"Cost of mothervessel operations: {obj_cost_mothervessels:.2f}")
-
-        # for s in spare_parts:
-        #     for e in mother_vessels:
-        #         p = 1
-        #         print(f"order quantity of spare part {s} at mother vessel {e} in period {p} = {order_quantity[s, e, p].x}")
-        #         print(f"27.order quantity of spare part {s} at mother vessel {e} in period {p} <= {sum(mu_P[s, b, e, p].x + mu_CH[s, b, e, p].x for b in bases)}")
-        #         print(f"26.order quantity of spare part {s} at mother vessel {e} in period {p} <= {big_m * order_trigger[s, e, p].x}")
-        #         print(f"25.order quantity of spare part {s} at mother vessel {e} in period {p} >= {(max_part_capacity[s, e] - inventory_level[s, e, p].x) - big_m*(1-order_trigger[s, e, p].x)}")
-        #         print(f"24.order quantity of spare part {s} at mother vessel {e} in period {p} <= {(max_part_capacity[s, e] - inventory_level[s, e, p].x) + big_m*(1-order_trigger[s, e, p].x)}")
-        #         print(f"19.order quantity of spare part {s} at mother vessel {e} in period {p} <= {big_m * (1-mv_offshore[e, p].x)}")
-        #         print(f"18.inventory level of spare part {s} at mother vessel {e} in period {p}  {inventory_level[s, e, p].x} == {get_inventory_level(s, e, p-1, inventory_level, initial_inventory)} + {order_quantity[s, e, p].x} - {sum(parts_required[m, s] * task_performed[e, v, p, m].x for v in ctvessels for m in tasks)}")
-
-
+        print(f"Total cost: {total_cost:.2f}")
 
         # Make plots of spare parts
         plot_parts_vars(vars, params, sets)
