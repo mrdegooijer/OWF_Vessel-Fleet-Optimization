@@ -100,7 +100,7 @@ def create_parameters(data, sets, year):
         for e in locations:
             max_capacity.append(max_part_capacity[s, e])
     # big_M = 10000
-    big_M = max(max_capacity)*10  # Use the maximum capacity as Big-M
+    big_M = max(max_capacity)*100  # Use the maximum capacity as Big-M
 
 
     # Mother Vessel Parameters

@@ -72,11 +72,11 @@ def GRASP(model, sets, params, vars, start_time):
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
-            elif model.status == GRB.Status.INFEASIBLE:
-                model.computeIIS()
-                model.write("infeasible.ilp")
-                print("Model is infeasible. IIS written to 'infeasible.ilp'.")
-                return
+            # elif model.status == GRB.Status.INFEASIBLE:
+            #     model.computeIIS()
+            #     model.write("infeasible.ilp")
+            #     print("Model is infeasible. IIS written to 'infeasible.ilp'.")
+
         purchased_vessels[b_opt, v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
         purchased_vessels[b_opt, v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
 
@@ -92,7 +92,8 @@ def GRASP(model, sets, params, vars, start_time):
                 chartered_vessels[b_opt, v, p].lb = i
                 print(f"Optimizing for base {b_opt}, chartered vessel {v}, period {p}, quantity {i}")
                 model.optimize()
-                obj_value_cv[v][p][i] = model.objVal
+                if model.status == GRB.Status.OPTIMAL:
+                    obj_value_cv[v][p][i] = model.objVal
             chartered_vessels[b_opt,v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
             chartered_vessels[b_opt,v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
 
@@ -102,14 +103,15 @@ def GRASP(model, sets, params, vars, start_time):
         model.computeIIS()
         model.write("infeasible.ilp")
         print("Model is infeasible. IIS written to 'infeasible.ilp'.")
-        return
-    print("Initial solution objective value:", model.objVal)
+    #     return
+    if model.status == GRB.Status.OPTIMAL:
+        print("Initial solution objective value:", model.objVal)
 
-    # print('Objective value:', model.objVal)
-    # print('Base use:', {b: base_use[b].X for b in bases})
-    # print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
-    # print('Chartered vessels:',
-    #       {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
+        print('Objective value:', model.objVal)
+        print('Base use:', {b: base_use[b].X for b in bases})
+        print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
+        print('Chartered vessels:',
+            {b: {v: {p: chartered_vessels[b, v, p].X for p in charter_periods} for v in vessels} for b in bases})
 
     # ========== TABU SEARCH ==========
     # --- 6. --- Create solution vector
@@ -151,8 +153,15 @@ def GRASP(model, sets, params, vars, start_time):
 
         # neighbours for purchased vessels
         for b in bases:
-            for v in vessels:
+            for v in ctvessels:
                 i = bases.index(b)*len(vessels) + vessels.index(v)
+
+                # # Only allow adding if v is not a mothervessel or if total of mothervessels is < 1
+                # if v in mother_vessels:
+                #     total_mv = sum(nb[bases.index(bb)*len(vessels) + vessels.index(v)] for bb in bases)
+                #     if total_mv >= 1:
+                #         continue # skip adding this mothervessel
+
                 # add a purchased vessel
                 nb = sol.copy()
                 if nb[i] < capacity_base_for_vessels[b, v] and 'add '+str(b)+str(v) not in tabu:
@@ -171,6 +180,13 @@ def GRASP(model, sets, params, vars, start_time):
                     nb = sol.copy()
                     for j in range(len(vessels)):
                         if j != i and nb[j] < capacity_base_for_vessels[b, vessels[j]] and 'switch '+str(b)+vessels[j]+str(v) not in tabu:
+
+                            # # Only allow changing type if the new vessel type is not a mothervessel when total of mothervessels is >= 1
+                            # if vessels[j] in mother_vessels:
+                            #     total_mv = sum(nb[bases.index(bb)*len(vessels) + j] for bb in bases)
+                            #     if total_mv >= 1:
+                            #         continue  # skip changing to this mothervessel
+
                             # change type of a purchased vessel
                             nb[i] -= 1
                             nb[j] += 1
@@ -189,9 +205,16 @@ def GRASP(model, sets, params, vars, start_time):
         print("Purchased vessels neighbours:", len(neighbours))
         # neighbours for chartered vessels
         for b in bases:
-            for v in vessels:
+            for v in ctvessels:
                 for p in charter_periods:
                     i = len(purchased_vessels) + bases.index(b)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + p
+
+                    # # Only allow adding if v is not a mothervessel or if total of mothervessels is < 1
+                    # if v in mother_vessels:
+                    #     total_mv = sum(sol[len(purchased_vessels) + bases.index(bb)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + pp] for bb in bases for pp in charter_periods)
+                    #     if total_mv >= 1:
+                    #         continue  # skip adding this mothervessel
+
                     # add a chartered vessel
                     nb = sol.copy()
                     if nb[i] < capacity_base_for_vessels[b, v] and 'add '+str(b)+str(v)+str(p) not in tabu:
@@ -212,6 +235,13 @@ def GRASP(model, sets, params, vars, start_time):
                         for j in range(len(vessels)):
                             k = (j-vessels.index(v))*len(charter_periods) + i
                             if j != vessels.index(v) and nb[k] < capacity_base_for_vessels[b, vessels[j]] and 'switch '+str(b)+vessels[j]+str(v)+str(p) not in tabu:
+
+                                # # Only allow changing type if the new vessel type is not a mothervessel when total of mothervessels is >= 1
+                                # if vessels[j] in mother_vessels:
+                                #     total_mv = sum(nb[len(purchased_vessels) + bases.index(bb)*(len(vessels)+len(charter_periods)) + j*len(charter_periods) + pp] for bb in bases for pp in charter_periods)
+                                #     if total_mv >= 1:
+                                #         continue  # skip changing to this mothervessel
+
                                 nb[i] -= 1
                                 nb[j] += 1
                                 neighbours.append(nb.copy())
@@ -222,6 +252,13 @@ def GRASP(model, sets, params, vars, start_time):
                         for l in charter_periods:
                             m = i + (l-p)
                             if l != p and nb[m] < capacity_base_for_vessels[b, v] and 'switch '+str(b)+str(v)+str(l)+str(p) not in tabu:
+
+                                # # Only allow changing period if the new period does not already have a mothervessel (resulting in a total of mothervessels > 1)
+                                # if v in mother_vessels:
+                                #     total_mv = sum(nb[len(purchased_vessels) + bases.index(bb)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + pp] for bb in bases for pp in charter_periods)
+                                #     if total_mv >= 1:
+                                #         continue  # skip changing to this period
+
                                 nb[i] -= 1
                                 nb[m] += 1
                                 neighbours.append(nb.copy())
@@ -296,15 +333,19 @@ def GRASP(model, sets, params, vars, start_time):
                     for p in charter_periods:
                         j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p + len(purchased_vessels)
                         chartered_vessels[b, v, p].lb = x[j]
+                        print(f"chartered_vessels[{b}, {v}, {p}].lb = {x[j]}")
                         chartered_vessels[b, v, p].ub = x[j]
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 it_objectives[iteration].append(model.objVal)
+                print("objective value:", model.objVal)
             else:
                 it_objectives[iteration].append(float('inf'))
 
         solution[iteration] = neighbours[it_objectives[iteration].index(min(it_objectives[iteration]))]
+        print("solution:", solution[iteration])
         objective[iteration] = min(it_objectives[iteration])
+        print('solution objective value:', objective[iteration])
         best_objective_so_far.append(min(objective[o] for o in range(iteration)))
 
         tabu_addition = it_move[it_objectives[iteration].index(min(it_objectives[iteration]))]
@@ -319,7 +360,7 @@ def GRASP(model, sets, params, vars, start_time):
 
     final_objective = min(objective[i] for i in range(len(objective)))  # the resulting objective value
     final_solution = solution[min(objective, key=objective.get)]  # the resulting solution corresponding to the objective value
-
+    print('Final solution:', final_solution)
     # --- 7. --- Set the final solution and optimize the model
     for b in bases:
         l = len(purchased_vessels) + len(chartered_vessels) + bases.index(b)
@@ -330,7 +371,7 @@ def GRASP(model, sets, params, vars, start_time):
             purchased_vessels[b, v].lb = final_solution[i]
             purchased_vessels[b, v].ub = final_solution[i]
             for p in charter_periods:
-                j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v) * len(charter_periods) + p-1 + len(purchased_vessels)
+                j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v) * len(charter_periods) + p + len(purchased_vessels)
                 chartered_vessels[b, v, p].lb = final_solution[j]
                 chartered_vessels[b, v, p].ub = final_solution[j]
 
