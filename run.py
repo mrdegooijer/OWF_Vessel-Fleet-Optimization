@@ -44,10 +44,8 @@ def main():
 
     # Add objective function
     add_objective_function(model, sets, params, vars)
-    # model.write("model.lp")
 
     # Optimize the model
-    # model.optimize()
     GRASP(model, sets, params, vars, start_time)
     if model.status == GRB.OPTIMAL:
         model.write("results/solution_dG25_ME-GRASP.sol")
