@@ -17,17 +17,18 @@ import os
 
 
 def main():
-    # Create directory plots if it does not exist
+    # Create results and plots directories if it does not exist
     os.makedirs('plots', exist_ok=True)
-
-    # Initiate time tracking
-    start_time = time.time()
+    os.makedirs('results', exist_ok=True)
 
     # Load input data
     file_path = r'data/Inputs.xlsx'
     input_data = load_input_data(file_path)
     # Define the year of the weather data
     year = 2004
+
+    # Initiate time tracking
+    start_time = time.time()
 
     # Initialize the model
     model = Model("de Gooijer, 2025")
@@ -49,10 +50,12 @@ def main():
     # model.optimize()
     GRASP(model, sets, params, vars, start_time)
     if model.status == GRB.OPTIMAL:
-        model.write("solution_dG25_ME-GRASP.sol")
+        model.write("results/solution_dG25_ME-GRASP.sol")
+
+    end_time = time.time()
 
     # Return the results
-    results(model, sets, params, vars, start_time)
+    results(model, sets, params, vars, start_time, end_time)
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@ import time
 import pickle
 
 
-def results(model, sets, params, vars, start_time):
+def results(model, sets, params, vars, start_time, end_time):
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
@@ -80,4 +80,4 @@ def results(model, sets, params, vars, start_time):
         # Make plots of spare parts
         plot_parts_vars(vars, params, sets)
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (end_time - start_time))
