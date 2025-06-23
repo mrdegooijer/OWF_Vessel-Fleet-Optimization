@@ -165,27 +165,27 @@ def add_constraints(model, sets, params, vars):
     for s in spare_parts:
         for e in mother_vessels:  # or mothervessels
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]), name=f"22.order_trigger_activate_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]), name=f"22.order_trigger_activate_MV_{s},{e},{p}")
         for e in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]) + big_m * (1 - base_use[e]), name=f"23.order_trigger_activate_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]) + big_m * (1 - base_use[e]), name=f"23.order_trigger_activate_base_{s},{e},{p}")
 
     # Constraint 24 & 25: Order trigger deactivate
     for s in spare_parts:
         for e in mother_vessels:  # or mothervessels
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"24.order_trigger_deactivate_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"24.order_trigger_deactivate_MV_{s},{e},{p}")
         for e in bases:
             for p in periods:
-                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p] - big_m * (1 - base_use[e]), name=f"25.order_trigger_deactivate_{s},{e},{p}")
+                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p] - big_m * (1 - base_use[e]), name=f"25.order_trigger_deactivate_base_{s},{e},{p}")
 
-    # Constraint 26 - 28
+    # Constraint 26 - 28: Order quantity constraints for bases and mothervessels
     for s in spare_parts:
         for e in bases:
             for p in periods:
                 # Constraint 26
                 model.addConstr(order_quantity[s, e, p] <= (max_part_capacity[s, e] - inventory_level[s, e, p]) + big_m * (1 - order_trigger[s, e, p]), name=f"26a.order_quantity_(base)_{s},{e},{p}")
-                # Constraint 27
+                # Constraint 27 (?)
                 model.addConstr(order_quantity[s, e, p] >= (max_part_capacity[s, e] - inventory_level[s, e, p]) - big_m * (1 - order_trigger[s, e, p]), name=f"27.order_quantity_(base)_{s},{e},{p}")
                 # Constraint 28
                 model.addConstr(order_quantity[s, e, p] <= big_m * order_trigger[s, e, p], name=f"28a.order_quantity_(base)_{s},{e},{p}")
