@@ -128,7 +128,6 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 for m in tasks:
                     model.addConstr(task_performed[e, v, p, m] == quicksum(hours_spent[c, w, q, m]/time_to_perform_task[m] - task_performed[c, w, q, m] for c in locations for w in ctvessels for q in range(0, p)) + hours_spent[e, v, p, m]/time_to_perform_task[m], name=f"16.time_spent_on_tasks_{e},{v},{p},{m}")
-                    # model.addConstr(task_performed[e, v, p, m] == hours_spent[e, v, p, m] / time_to_perform_task[m], name=f"16.time_spent_simplified_{e},{v},{p},{m}")
 
 
     # --- Constraints for extensions ---

@@ -32,6 +32,6 @@ def plot_parts_vars(vars, params, sets):
             plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle=':', color='red')
             plt.plot(periods, [max_capacity[s, e] for p in periods], label='Max Capacity', linestyle=':',
                      color='orange')
-            plt.legend()
+            plt.legend(loc='upper right')
             plt.savefig(f"plots/spare_part_{s}_locations_{e}.png", bbox_inches='tight')
             plt.close()

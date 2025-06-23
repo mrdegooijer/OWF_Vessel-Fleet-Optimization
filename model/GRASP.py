@@ -87,7 +87,7 @@ def GRASP(model, sets, params, vars, start_time):
         for p in charter_periods:
             obj_value_cv[v][p] = {}
             for i in range(min(max_vessels_available_charter[v], capacity_base_for_vessels[b_opt, v])+1-min(obj_value_pv[v], key=obj_value_pv[v].get)):
-                obj_value_cv[v][p][i] = []
+                obj_value_cv[v][p][i] = float('inf')
                 chartered_vessels[b_opt, v, p].ub = i
                 chartered_vessels[b_opt, v, p].lb = i
                 print(f"Optimizing for base {b_opt}, chartered vessel {v}, period {p}, quantity {i}")
