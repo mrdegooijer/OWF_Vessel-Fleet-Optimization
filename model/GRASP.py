@@ -29,6 +29,9 @@ def GRASP(model, sets, params, vars, start_time):
      periods_late, hours_spent, inventory_level, order_quantity,
      order_trigger, mv_offshore, lambda_P, lambda_CH, mu_P, mu_CH) = unpack_variables(vars)
 
+    #Set parameter
+    model.setParam('OutputFlag', 0)
+
     # ========== Greedy Construction Algorithm ==========
     # --- 1. --- Set all bases and vessels to zero
     for b in bases:
@@ -95,13 +98,11 @@ def GRASP(model, sets, params, vars, start_time):
     model.optimize()
     if model.status == GRB.Status.INFEASIBLE:
         model.computeIIS()
-        model.write("infeasible.ilp")
+        model.write("results/infeasible.ilp")
         print("Model is infeasible. IIS written to 'infeasible.ilp'.")
     #     return
     if model.status == GRB.Status.OPTIMAL:
         print("Initial solution objective value:", model.objVal)
-
-        print('Objective value:', model.objVal)
         print('Base use:', {b: base_use[b].X for b in bases})
         print('Purchased vessels:', {b: {v: purchased_vessels[b, v].X for v in vessels} for b in bases})
         print('Chartered vessels:',
@@ -130,7 +131,7 @@ def GRASP(model, sets, params, vars, start_time):
     # Base use
     for b in bases:
         solution[iteration].append(base_use[b].X)
-    print('solution', solution[iteration])
+    print(f"{iteration}. Solution vector: {solution[iteration]} with objective value: {model.objVal}")
 
     objective[iteration] = model.objVal
     best_objective_so_far = []
@@ -301,7 +302,7 @@ def GRASP(model, sets, params, vars, start_time):
         solution[iteration] = neighbours[it_objectives[iteration].index(min(it_objectives[iteration]))]
         objective[iteration] = min(it_objectives[iteration])
         best_objective_so_far.append(min(objective[o] for o in range(iteration)))
-
+        print(f"{iteration}. Solution vector: {solution[iteration]} with objective value: {objective[iteration]}")
         tabu_addition = it_move[it_objectives[iteration].index(min(it_objectives[iteration]))]
         tabu.append(tabu_addition)
 
@@ -314,7 +315,7 @@ def GRASP(model, sets, params, vars, start_time):
 
     final_objective = min(objective[i] for i in range(len(objective)))  # the resulting objective value
     final_solution = solution[min(objective, key=objective.get)]  # the resulting solution corresponding to the objective value
-    print('Final solution:', final_solution)
+    print(f"Final solution: {final_solution} from iteration {min(objective, key=objective.get)}")
 
     # --- 7. --- Set the final solution and optimize the model
     for b in bases:

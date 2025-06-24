@@ -332,7 +332,7 @@ Cost_downtime_pretasks = quicksum(cost_downtime[p]*df_tasks.loc[m, 'Active_time'
 Cost_downtime_cortasks = quicksum(cost_downtime[p] * (task_performed[b,v,p,m] * ((df_bases.loc[b, 'Distance']/(1.852*df_vessels.loc[v, 'speed'])) + (2*df_vessels.loc[v, 'transfer_time']/60) + df_tasks.loc[m, 'Active_time']) + days_late[p,m]*24) for b in bases for v in vessels for m in cor_tasks for p in periods)
 Cost_penalties = quicksum(cost_penalty_late*task_late[m] for m in pre_tasks) + quicksum(cost_penalty_not_performed*task_not_performed[m] for m in tasks)
 
-# model.setParam( 'OutputFlag', True)
+model.setParam( 'OutputFlag', 0)
 # model.setParam( 'NonConvex', 2)
 model.setParam ('MIPGap', 0);
 model.setParam('Seed', 42)
@@ -408,7 +408,7 @@ tabu = []                   # list of tabu moves
 solution[iteration] = []    # solution for each neighbor at each iteration
 for i in range(len(purchased_vessel)+len(chartered_vessel)+len(bases)):
     solution[iteration].append(model.getVarByName("C"+str(i)).x)
-
+print(f"{iteration}. Solution vector: {solution[iteration]} with objective value: {model.objVal}")
 objective[iteration] = model.objVal
 best_objective_so_far = []
 it_objectives[iteration] = [model.objVal]
@@ -575,6 +575,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
     solution[iteration] = neighbors[it_objectives[iteration].index(min(it_objectives[iteration]))]
     objective[iteration] = min(it_objectives[iteration])
     best_objective_so_far.append(min(objective[o] for o in range(iteration)))
+    print(f"{iteration}. Solution vector: {solution[iteration]} with objective value: {objective[iteration]}")
     tabu.append(it_move[it_objectives[iteration].index(min(it_objectives[iteration]))])
 
     # stopping criteria if no improvements in objective value have been found
@@ -586,7 +587,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
 
 final_objective = min(objective[i] for i in range(len(objective)))      # the resulting objective value
 final_solution = solution[min(objective, key=objective.get)]            # the resulting solution corresponding to the objective value
-
+print(f"Final solution: {final_solution} from iteration {min(objective, key=objective.get)}")
 # set each decision variable to the resulting solution
 for b in bases:
     l = len(purchased_vessel)+len(chartered_vessel) + bases.index(b)
