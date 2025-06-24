@@ -60,7 +60,7 @@ def add_constraints(model, sets, params, vars):
     for e in mother_vessels:
         for v in ctvessels:
             for p in periods:
-                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] + additional_time[v] - transfer_time[v] * (1 + len(bundle_dict[k])))) for k in bundles), name=f"4.max_time_offshore_(mv)_{e},{v},{p}")
+                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] - transfer_time[v] * (1 + len(bundle_dict[k])))) for k in bundles), name=f"4.max_time_offshore_(mv)_{e},{v},{p}")
 
     # Constraint 5: Weather restrictions (for ctvs)
     for e in locations:
@@ -207,11 +207,7 @@ def add_constraints(model, sets, params, vars):
     for e in mother_vessels:
         for v in ctvessels:
             for p in periods:
-                model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= quicksum(
-                    purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)]
-                    for b
-                    in bases), name=f"29.tasks_performed_limit_{e},{v},{p}")
-
+                model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= quicksum(purchased_vessels[b, v] + chartered_vessels[b, v, return_charter_period(p, charter_dict)] for b in bases), name=f"29.tasks_performed_limit_{e},{v},{p}")
 
     # Constraint 30: Max one mothervessel per type
     for v in mother_vessels:
