@@ -68,14 +68,9 @@ def GRASP(model, sets, params, vars, start_time):
             obj_value_pv[v][i] = float('inf')
             purchased_vessels[b_opt, v].ub = i
             purchased_vessels[b_opt, v].lb = i
-            print(f"Optimizing for base {b_opt}, purchased vessel {v}, quantity {i}")
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 obj_value_pv[v][i] = model.objVal
-            # elif model.status == GRB.Status.INFEASIBLE:
-            #     model.computeIIS()
-            #     model.write("infeasible.ilp")
-            #     print("Model is infeasible. IIS written to 'infeasible.ilp'.")
 
         purchased_vessels[b_opt, v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
         purchased_vessels[b_opt, v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
@@ -90,7 +85,6 @@ def GRASP(model, sets, params, vars, start_time):
                 obj_value_cv[v][p][i] = float('inf')
                 chartered_vessels[b_opt, v, p].ub = i
                 chartered_vessels[b_opt, v, p].lb = i
-                print(f"Optimizing for base {b_opt}, chartered vessel {v}, period {p}, quantity {i}")
                 model.optimize()
                 if model.status == GRB.Status.OPTIMAL:
                     obj_value_cv[v][p][i] = model.objVal
@@ -137,8 +131,6 @@ def GRASP(model, sets, params, vars, start_time):
     for b in bases:
         solution[iteration].append(base_use[b].X)
     print('solution', solution[iteration])
-
-
 
     objective[iteration] = model.objVal
     best_objective_so_far = []
@@ -292,28 +284,22 @@ def GRASP(model, sets, params, vars, start_time):
                 l = len(purchased_vessels) + len(chartered_vessels) + bases.index(b)
                 base_use[b].lb = x[l]
                 base_use[b].ub = x[l]
-                print(f"base_use[{b}] = {x[l]}")
                 for v in vessels:
                     i = bases.index(b)*len(vessels) + vessels.index(v)
                     purchased_vessels[b, v].lb = x[i]
                     purchased_vessels[b, v].ub = x[i]
-                    print(f"purchased_vessels[{b}, {v}] = {x[i]}")
                     for p in range(1, len(charter_periods)+1):
                         j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p-1 + len(purchased_vessels)
                         chartered_vessels[b, v, p].lb = x[j]
                         chartered_vessels[b, v, p].ub = x[j]
-                        print(f"chartered_vessels[{b}, {v}, {p}] = {x[j]}")
             model.optimize()
             if model.status == GRB.Status.OPTIMAL:
                 it_objectives[iteration].append(model.objVal)
-                print("objective value:", model.objVal)
             else:
                 it_objectives[iteration].append(float('inf'))
 
         solution[iteration] = neighbours[it_objectives[iteration].index(min(it_objectives[iteration]))]
-        print("solution:", solution[iteration])
         objective[iteration] = min(it_objectives[iteration])
-        print('solution objective value:', objective[iteration])
         best_objective_so_far.append(min(objective[o] for o in range(iteration)))
 
         tabu_addition = it_move[it_objectives[iteration].index(min(it_objectives[iteration]))]
@@ -332,20 +318,14 @@ def GRASP(model, sets, params, vars, start_time):
     # --- 7. --- Set the final solution and optimize the model
     for b in bases:
         l = len(purchased_vessels) + len(chartered_vessels) + bases.index(b)
-        print(f"base_use[{b}] = {final_solution[l]}")
-        print(f"l = {l}")
         base_use[b].lb = final_solution[l]
         base_use[b].ub = final_solution[l]
         for v in vessels:
             i = bases.index(b)*len(vessels) + vessels.index(v)
-            print(f"purchased_vessels[{b}, {v}] = {final_solution[i]}")
-            print(f"i = {i}")
             purchased_vessels[b, v].lb = final_solution[i]
             purchased_vessels[b, v].ub = final_solution[i]
             for p in range(1, len(charter_periods)+1):
                 j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v) * len(charter_periods) + p-1 + len(purchased_vessels)
-                print(f"chartered_vessels[{b}, {v}, {p}] = {final_solution[j]}")
-                print(f"j = {j}")
                 chartered_vessels[b, v, p].lb = final_solution[j]
                 chartered_vessels[b, v, p].ub = final_solution[j]
 

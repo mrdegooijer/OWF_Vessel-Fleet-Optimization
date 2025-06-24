@@ -34,7 +34,7 @@ def results(model, sets, params, vars, start_time, end_time):
 
     if model.status == GRB.Status.INFEASIBLE:
         model.computeIIS()
-        model.write("infeasible.ilp")
+        model.write("results/infeasible.ilp")
         print("Model is infeasible. IIS written to 'infeasible.ilp'.")
 
     elif model.status == GRB.Status.OPTIMAL:
