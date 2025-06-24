@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from utils.initial_values import *
 
 def plot_parts_vars(vars, params, sets):
     # Plot spare parts decision variables

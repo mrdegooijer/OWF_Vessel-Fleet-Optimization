@@ -194,8 +194,6 @@ def add_constraints(model, sets, params, vars):
             for p in periods:
                 # Constraint 26 (also for mothervessels)
                 model.addConstr(order_quantity[s, e, p] <= (max_part_capacity[s, e] - inventory_level[s, e, p]) + big_m * (1 - order_trigger[s, e, p]), name=f"26b.order_quantity_(mv)_{s},{e},{p}")
-                # Constraint 27 (also for mothervessels) (not needed)
-                # model.addConstr(order_quantity[s, e, p] >= (max_part_capacity[s, e] - inventory_level[s, e, p]) - big_m * (1 - order_trigger[s, e, p]), name=f"25b.order_quantity_(mv)_{s},{e},{p}")
                 # Constraint 28 (also for mothervessels)
                 model.addConstr(order_quantity[s, e, p] <= big_m * order_trigger[s, e, p], name=f"28b.order_quantity_(mv)_{s},{e},{p}")
 
@@ -248,25 +246,23 @@ def add_constraints(model, sets, params, vars):
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 1, mu_CH[s, e, v, p] == inventory_level[s, e, p], name=f"37a.aux_var_mu_CH_{s},{e},{v},{p}")
                     model.addGenConstrIndicator(chartered_vessels[e, v, return_charter_period(p, charter_dict)], 0, mu_CH[s, e, v, p] == 0, name=f"37b.aux_var_mu_CH_{s},{e},{v},{p}")
 
-    for s in spare_parts:
-        for e in bases:
-            for p in periods:
+    # for s in in periods:
                 # Constraint 38: No inventory when no base use
-                model.addConstr(inventory_level[s, e, p] <= big_m * base_use[e], name=f"38.no_inventory_when_no_base_use_{s},{e},{p}")
+                # model.addConstr(inventory_level[s, e, p] <= big_m * base_use[e], name=f"38.no_inventory_when_no_base_use_{s},{e},{p}")
 
                 # Constraint 39: No order quantity when no base use
-                model.addConstr(order_quantity[s, e, p] <= big_m * base_use[e], name=f"39.no_order_quantity_when_no_base_use_{s},{e},{p}")
+                # model.addConstr(order_quantity[s, e, p] <= big_m * base_use[e], name=f"39.no_order_quantity_when_no_base_use_{s},{e},{p}")
 
                 # Constraint 40: No order trigger when no base use
-                model.addConstr(order_trigger[s, e, p] <= base_use[e], name=f"40.no_order_trigger_when_no_base_use_{s},{e},{p}")
+                # model.addConstr(order_trigger[s, e, p] <= base_use[e], name=f"40.no_order_trigger_when_no_base_use_{s},{e},{p}")
 
     for s in spare_parts:
         for e in mother_vessels:
             for p in periods:
-                # Constraint 41: No inventory when no mothervessel use
-                model.addConstr(inventory_level[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"41.no_inventory_when_no_mothervessel_use_{s},{e},{p}")
+                # Constraint 38: No inventory when no mothervessel use
+                model.addConstr(inventory_level[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"38.no_inventory_when_no_mothervessel_use_{s},{e},{p}")
 
-                # Constraint 42: No order quantity when no mothervessel use
-                model.addConstr(order_quantity[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"42.no_order_quantity_when_no_mothervessel_use_{s},{e},{p}")
+                # Constraint 39: No order quantity when no mothervessel use
+                model.addConstr(order_quantity[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"39.no_order_quantity_when_no_mothervessel_use_{s},{e},{p}")
 
     model.update()
