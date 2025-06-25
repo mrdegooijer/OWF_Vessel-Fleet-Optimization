@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def plot_parts_vars(vars, params, sets):
+def plot_parts_vars(vars, params, sets, run_index, year):
     # Plot spare parts decision variables
     periods = sets['periods']
     periods_0 = [0] + list(periods)
@@ -51,5 +51,5 @@ def plot_parts_vars(vars, params, sets):
             plt.plot(periods, y, label=f'Vessel {v}')
 
         plt.legend(loc='upper right')
-        plt.savefig(f"plots/task_performance_location_{e}.png", bbox_inches='tight')
+        plt.savefig(f"plots_{year}/task_performance_location_{e}_run_{run_index}.png", bbox_inches='tight')
         plt.close()

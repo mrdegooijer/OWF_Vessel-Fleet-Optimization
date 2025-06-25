@@ -6,7 +6,7 @@ import time
 import pickle
 
 
-def results(model, sets, params, vars, start_time, end_time):
+def results(model, sets, params, vars, start_time, end_time, run_index, year):
     # Unpack sets
     (bases, vessels, periods, charter_dict, charter_periods, tasks, vessel_task_compatibility,
      prev_tasks, corr_tasks, planned_prev_tasks, planned_corr_tasks, bundle_dict, bundles, spare_parts,
@@ -34,7 +34,7 @@ def results(model, sets, params, vars, start_time, end_time):
 
     if model.status == GRB.Status.INFEASIBLE:
         model.computeIIS()
-        model.write("results/infeasible.ilp")
+        model.write(f"results_{year}/infeasible_{run_index}.ilp")
         print("Model is infeasible. IIS written to 'infeasible.ilp'.")
 
     elif model.status == GRB.Status.OPTIMAL:
@@ -79,6 +79,6 @@ def results(model, sets, params, vars, start_time, end_time):
         print(f"Total cost: {total_cost:.2f}")
 
         # Make plots of spare parts
-        plot_parts_vars(vars, params, sets)
+        plot_parts_vars(vars, params, sets, run_index, year)
 
     print("--- %s seconds ---" % (end_time - start_time))
