@@ -20,17 +20,19 @@ def create_parameters(data, sets, year):
     data['max_capacity'].set_index(data['max_capacity'].columns[0], inplace=True)
     data['reorder_level'].set_index(data['reorder_level'].columns[0], inplace=True)
     data['locations'].set_index('SET', inplace=True)
+    data['docking'].set_index(data['docking'].columns[0], inplace=True)
 
     # Cost Parameters
     cost_base_operation = data['bases']['cost']
-    cost_vessel_purchase = data['vessels']['cost_purchase']
+    # cost_vessel_purchase = data['vessels']['cost_purchase']
     cost_vessel_charter = {
         (v, p): data['vessels']['cost_charter_day'][v] * len(charter_dict[p-1])
         for v in vessels for p in charter_periods
     }
-    cost_vessel_operation = data['vessels']['cost_operation']                      # Hourly cost?
-    cost_technicians = data['general']['cost_technicians'].iloc[0]          # Hourly cost
+    # cost_vessel_operation = data['vessels']['cost_operation']                      # Hourly cost?
+    # cost_technicians = data['general']['cost_technicians'].iloc[0]          # Hourly cost
     cost_downtime = generate_downtime_cost(periods, year)
+    cost_repair = data['tasks']['repair_cost']
 
     # Penalty Parameters (implemented as cost parameters)
     penalty_preventive_late = data['general']['penalty_cost_late'].iloc[0]                  # Cost per hour?
@@ -44,7 +46,8 @@ def create_parameters(data, sets, year):
 
     # Base Parameters
     distance_base_OWF = data['locations']['distance']
-    technicians_available = data['locations']['technicians_available']
+    # technicians_available = data['locations']['technicians_available']
+    technicians_available = 150     #for validation case, no limit is given to technicians available
 
     # Capacity Parameters
     capacity_base_for_vessels = {
@@ -104,17 +107,20 @@ def create_parameters(data, sets, year):
 
 
     # Mother Vessel Parameters
-    max_capacity_for_docking = data['locations']['max_capacity_for_docking']
-    additional_time = data['vessels']['additional_time']                # additional hours for CTVs when docking at mother vessel
-    tech_standby_cost = data['general']['tech_standby_cost'].iloc[0]  # Cost per hour for technicians on standby
+    max_capacity_for_docking = {
+        (e, v): data['docking'].at[e, v]
+        for e in locations for v in ctvessels
+    }
+
 
     # Create the parameters dictionary
     params = {
         'cost_base_operation': cost_base_operation,
-        'cost_vessel_purchase': cost_vessel_purchase,
+        # 'cost_vessel_purchase': cost_vessel_purchase,
         'cost_vessel_charter': cost_vessel_charter,
-        'cost_vessel_operation': cost_vessel_operation,
-        'cost_technicians': cost_technicians,
+        # 'cost_vessel_operation': cost_vessel_operation,
+        # 'cost_technicians': cost_technicians,
+        'cost_repair': cost_repair,
         'cost_downtime': cost_downtime,
         'penalty_preventive_late': penalty_preventive_late,
         'penalty_not_performed': penalty_not_performed,
@@ -141,8 +147,6 @@ def create_parameters(data, sets, year):
         'reorder_level': reorder_level,
         'big_m': big_M,
         'max_capacity_for_docking': max_capacity_for_docking,
-        'additional_time': additional_time,
-        'tech_standby_cost': tech_standby_cost,
         'initial_inventory': initial_inventory
     }
 

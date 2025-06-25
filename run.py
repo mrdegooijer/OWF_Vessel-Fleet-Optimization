@@ -22,7 +22,7 @@ def main():
     os.makedirs('results', exist_ok=True)
 
     # Load input data
-    file_path = r'data/Inputs.xlsx'
+    file_path = r'data/Inputs_Validation.xlsx'
     input_data = load_input_data(file_path)
     # Define the year of the weather data
     year = 2004
@@ -31,7 +31,7 @@ def main():
     start_time = time.time()
 
     # Initialize the model
-    model = Model("de Gooijer, 2025")
+    model = Model("de Gooijer, 2025 - Validation")
 
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
@@ -48,7 +48,7 @@ def main():
     # Optimize the model
     GRASP(model, sets, params, vars, start_time)
     if model.status == GRB.OPTIMAL:
-        model.write("results/solution_dG25_ME-GRASP.sol")
+        model.write("results/solution_dG25_Validation.sol")
 
     end_time = time.time()
 

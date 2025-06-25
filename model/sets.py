@@ -6,6 +6,7 @@ def create_sets(data):
     Create the model sets
     """
     turbines = int(data['general']['turbines'].iloc[0])
+    charter_period_length = int(data['general']['charter_period'].iloc[0])
 
     sets={}
 
@@ -13,7 +14,7 @@ def create_sets(data):
     tasks = data['tasks']['SET'].tolist()
 
     periods = list(range(1, int(data['general']['planning_horizon'].iloc[0]) + 1))
-    charter_dict = list(periods[i:i+30] for i in range(0, len(periods), data['general']['charter_period'].iloc[0]))             #Dict with all the periods p ordered into the charter periods
+    charter_dict = list(periods[i:i+charter_period_length] for i in range(0, len(periods), data['general']['charter_period'].iloc[0]))             #Dict with all the periods p ordered into the charter periods
     charter_periods = list(range(1, int(data['general']['planning_horizon'].iloc[0] / data['general']['charter_period'].iloc[0]) + 1))
 
     vessels = data['vessels']['SET'].tolist()

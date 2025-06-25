@@ -20,8 +20,8 @@ def add_constraints(model, sets, params, vars):
      mother_vessels, ctvessels, locations) = unpack_sets(sets)
 
     # Unpack parameters
-    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
-     cost_vessel_operation, cost_technicians, cost_downtime,
+    (cost_base_operation, cost_vessel_charter,
+     cost_repair, cost_downtime,
      penalty_preventive_late, penalty_not_performed, vessel_speed,
      transfer_time, max_time_offshore, max_vessels_available_charter,
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
@@ -30,7 +30,7 @@ def add_constraints(model, sets, params, vars):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
+     initial_inventory) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
@@ -71,7 +71,7 @@ def add_constraints(model, sets, params, vars):
     # Constraint 6: Location capacity for technicians
     for e in locations:
         for p in periods:
-            model.addConstr(quicksum(technicians_required_bundle[k] * bundle_performed[e, v, p, k] for v in ctvessels for k in bundles) <= technicians_available[e], name=f"6.location_capacity_for_technicians_{e},{p}")
+            model.addConstr(quicksum(technicians_required_bundle[k] * bundle_performed[e, v, p, k] for v in ctvessels for k in bundles) <= technicians_available, name=f"6.location_capacity_for_technicians_{e},{p}")
 
     # Constraint 7: Vessel capacity for technicians
     for e in locations:
@@ -170,13 +170,13 @@ def add_constraints(model, sets, params, vars):
                 model.addConstr(inventory_level[s, e, p] <= reorder_level[s, e] + big_m * (1 - order_trigger[s, e, p]) + big_m * (1 - base_use[e]), name=f"23.order_trigger_activate_base_{s},{e},{p}")
 
     # Constraint 24 & 25: Order trigger deactivate
-    for s in spare_parts:
-        for e in mother_vessels:  # or mothervessels
-            for p in periods:
-                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"24.order_trigger_deactivate_MV_{s},{e},{p}")
-        for e in bases:
-            for p in periods:
-                model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p] - big_m * (1 - base_use[e]), name=f"25.order_trigger_deactivate_base_{s},{e},{p}")
+    # for s in spare_parts:
+        # for e in mother_vessels:  # or mothervessels
+        #     for p in periods:
+                # model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p], name=f"24.order_trigger_deactivate_MV_{s},{e},{p}")
+        # for e in bases:
+        #     for p in periods:
+                # model.addConstr(inventory_level[s, e, p] >= reorder_level[s, e] + 1 - big_m * order_trigger[s, e, p] - big_m * (1 - base_use[e]), name=f"25.order_trigger_deactivate_base_{s},{e},{p}")
 
     # Constraint 26 - 28: Order quantity constraints for bases and mothervessels
     for s in spare_parts:
@@ -218,7 +218,7 @@ def add_constraints(model, sets, params, vars):
     for e in mother_vessels:
         for v in ctvessels:
             for p in periods:
-                model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= max_capacity_for_docking[e]*mv_offshore[e, p], name=f"31.mothervessel_docking_capacity_{e},{p}")
+                model.addConstr(quicksum(bundle_performed[e, v, p, k] for k in bundles) <= max_capacity_for_docking[e, v]*mv_offshore[e, p], name=f"31.mothervessel_docking_capacity_{e},{p}")
 
     # Constraint 32: Mothervessel maximum time offshore
     for e in mother_vessels:

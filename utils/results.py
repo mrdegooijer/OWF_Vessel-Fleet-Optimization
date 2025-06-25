@@ -13,8 +13,8 @@ def results(model, sets, params, vars, start_time, end_time):
      mother_vessels, ctvessels, locations) = unpack_sets(sets)
 
     # Unpack parameters
-    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
-     cost_vessel_operation, cost_technicians, cost_downtime,
+    (cost_base_operation, cost_vessel_charter,
+     cost_repair, cost_downtime,
      penalty_preventive_late, penalty_not_performed, vessel_speed,
      transfer_time, max_time_offshore, max_vessels_available_charter,
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
@@ -23,7 +23,7 @@ def results(model, sets, params, vars, start_time, end_time):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
+     initial_inventory) = unpack_parameters(params)
 
     # Unpack variables
     (base_use, purchased_vessels, chartered_vessels, task_performed,
@@ -40,16 +40,17 @@ def results(model, sets, params, vars, start_time, end_time):
     elif model.status == GRB.Status.OPTIMAL:
         # Calculate the cost elements of the objective function
         obj_cost_bases = sum(cost_base_operation[b] * base_use[b].x for b in bases)
-        obj_cost_purchase_vessel = sum(cost_vessel_purchase[v] * purchased_vessels[b, v].x for v in vessels for b in bases)
+        # obj_cost_purchase_vessel = sum(cost_vessel_purchase[v] * purchased_vessels[b, v].x for v in vessels for b in bases)
         obj_cost_charter_vessel = sum(cost_vessel_charter[(v, p)] * chartered_vessels[b, v, p].x for v in vessels for b in bases for p in charter_periods)
-        obj_cost_operations = sum(hours_spent[e, v, p, m].x * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for e in locations for v in ctvessels for p in periods for m in tasks)
+        # obj_cost_operations = sum(hours_spent[e, v, p, m].x * (cost_vessel_operation[v] + cost_technicians * technicians_required_task[m]) for e in locations for v in ctvessels for p in periods for m in tasks)
+        obj_cost_operations_validation = sum(task_performed[e, v, p, m].x * cost_repair[m] for e in locations for v in ctvessels for p in periods for m in tasks)
         obj_cost_downtime_preventive = sum(cost_downtime[p] * time_to_perform_task[m] * task_performed[e, v, p, m].x for e in locations for v in ctvessels for p in periods for m in prev_tasks)
         obj_cost_downtime_corrective = sum(cost_downtime[p] * (task_performed[e, v, p, m].x * (distance_base_OWF[e] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m].x * 24) for e in locations for v in ctvessels for p in periods for m in corr_tasks)
         obj_cost_penalty_late = sum(penalty_preventive_late * tasks_late[m].x for m in prev_tasks)
         obj_cost_penalty_not_performed = sum(penalty_not_performed * tasks_not_performed[m].x for m in tasks)
         obj_cost_spare_parts = sum(holding_cost[s, e] * inventory_level[s, e, p].x for s in spare_parts for e in locations for p in periods) + sum(order_cost[s] * order_quantity[s, e, p].x for s in spare_parts for e in bases for p in periods)
-        obj_cost_mothervessels = sum(cost_vessel_operation[v] * mv_offshore[v, p].x for v in mother_vessels for p in periods)
-        total_cost = obj_cost_bases + obj_cost_purchase_vessel + obj_cost_charter_vessel + obj_cost_operations + obj_cost_downtime_preventive + obj_cost_downtime_corrective + obj_cost_penalty_late + obj_cost_penalty_not_performed + obj_cost_spare_parts + obj_cost_mothervessels
+        # obj_cost_mothervessels = sum(cost_vessel_operation[v] * mv_offshore[v, p].x for v in mother_vessels for p in periods)
+        total_cost = obj_cost_bases + obj_cost_charter_vessel + obj_cost_operations_validation + obj_cost_downtime_preventive + obj_cost_downtime_corrective + obj_cost_penalty_late + obj_cost_penalty_not_performed + obj_cost_spare_parts
 
         # Print the vessels purchased and chartered at each base
         for b in bases:
@@ -66,15 +67,15 @@ def results(model, sets, params, vars, start_time, end_time):
 
         # Print the cost elements
         print(f"Cost of operating bases: {obj_cost_bases:.2f}")
-        print(f"Cost of purchased vessels: {obj_cost_purchase_vessel:.2f}")
+        # print(f"Cost of purchased vessels: {obj_cost_purchase_vessel:.2f}")
         print(f"Cost of chartered vessels: {obj_cost_charter_vessel:.2f}")
-        print(f"Cost of operating vessels: {obj_cost_operations:.2f}")
+        print(f"Cost of maintenance: {obj_cost_operations_validation:.2f}")
         print(f"Cost of downtime - preventive tasks: {obj_cost_downtime_preventive:.2f}")
         print(f"Cost of downtime - corrective tasks: {obj_cost_downtime_corrective:.2f}")
         print(f"Cost of penalties for late tasks: {obj_cost_penalty_late:.2f}")
         print(f"Cost of penalties for not performed tasks: {obj_cost_penalty_not_performed:.2f}")
         print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
-        print(f"Cost of mothervessel operations: {obj_cost_mothervessels:.2f}")
+        # print(f"Cost of mothervessel operations: {obj_cost_mothervessels:.2f}")
         print(f"Total cost: {total_cost:.2f}")
 
         # Make plots of spare parts

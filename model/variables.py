@@ -12,8 +12,8 @@ def create_variables(model, sets, params):
      mother_vessels, ctvessels, locations) = unpack_sets(sets)
 
     # Unpack parameters
-    (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
-     cost_vessel_operation, cost_technicians, cost_downtime,
+    (cost_base_operation, cost_vessel_charter,
+     cost_repair, cost_downtime,
      penalty_preventive_late, penalty_not_performed, vessel_speed,
      transfer_time, max_time_offshore, max_vessels_available_charter,
      distance_base_OWF, technicians_available, capacity_base_for_vessels,
@@ -22,7 +22,7 @@ def create_variables(model, sets, params):
      tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
      order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
      reorder_level, big_m, max_capacity_for_docking,
-     additional_time, tech_standby_cost, initial_inventory) = unpack_parameters(params)
+     initial_inventory) = unpack_parameters(params)
 
     # Find the highest 'max_part_capacity' for all
     capacities = []
@@ -36,7 +36,8 @@ def create_variables(model, sets, params):
     base_use = model.addVars(bases, lb=0, ub=1, vtype=GRB.BINARY, name="base_use")
 
     #x_bv
-    purchased_vessels = model.addVars(bases, vessels, lb=0, vtype=GRB.INTEGER, name="purchased_vessels")
+    # Set to 0 for validation case
+    purchased_vessels = model.addVars(bases, vessels, lb=0, ub=0, vtype=GRB.INTEGER, name="purchased_vessels")
 
     #x_bvp
     chartered_vessels = model.addVars(bases, vessels, charter_periods, lb=0, vtype=GRB.INTEGER, name="chartered_vessels")
@@ -65,19 +66,16 @@ def create_variables(model, sets, params):
 
     # Extension variables
     # q_sep
-    inventory_level = model.addVars(spare_parts, locations, periods, lb=0, vtype=GRB.INTEGER, name="inventory_level")
+    inventory_level = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="inventory_level")
 
     # o_sep
-    order_quantity = model.addVars(spare_parts, locations, periods, lb=0, vtype=GRB.INTEGER, name="order_quantity")
+    order_quantity = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="order_quantity")
 
     # o^trig_sep
-    order_trigger = model.addVars(spare_parts, locations, periods, lb=0, ub=1, vtype=GRB.BINARY, name="order_trigger")
-
-    # w_ep 
-    # docking_available = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="docking_available")
+    order_trigger = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.BINARY, name="order_trigger")
 
     # d_ep
-    mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=1, vtype=GRB.BINARY, name="mothervessel_offshore")
+    mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=0, vtype=GRB.BINARY, name="mothervessel_offshore")
     for v in mother_vessels:
         mv_offshore[v, 1].ub = 0
 
@@ -99,6 +97,7 @@ def create_variables(model, sets, params):
             for m in tasks:
                 task_performed[e, v, 0, m] = 0
                 hours_spent[e, v, 0, m] = 0
+
 
 
     vars = {

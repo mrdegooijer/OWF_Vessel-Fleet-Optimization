@@ -74,10 +74,11 @@ def unpack_parameters(params):
     :return: Unpacked variables
     """
     cost_base_operation = params['cost_base_operation']
-    cost_vessel_purchase = params['cost_vessel_purchase']
+    # cost_vessel_purchase = params['cost_vessel_purchase']
     cost_vessel_charter = params['cost_vessel_charter']
-    cost_vessel_operation = params['cost_vessel_operation']
-    cost_technicians = params['cost_technicians']
+    # cost_vessel_operation = params['cost_vessel_operation']
+    # cost_technicians = params['cost_technicians']
+    cost_repair = params['cost_repair']
     cost_downtime = params['cost_downtime']
     penalty_preventive_late = params['penalty_preventive_late']
     penalty_not_performed = params['penalty_not_performed']
@@ -104,13 +105,11 @@ def unpack_parameters(params):
     reorder_level = params['reorder_level']
     big_m = params['big_m']
     max_capacity_for_docking = params['max_capacity_for_docking']
-    additional_time = params['additional_time']  
-    tech_standby_cost = params['tech_standby_cost']
     initial_inventory = params['initial_inventory']
 
 
-    return (cost_base_operation, cost_vessel_purchase, cost_vessel_charter,
-            cost_vessel_operation, cost_technicians, cost_downtime,
+    return (cost_base_operation, cost_vessel_charter,
+            cost_repair, cost_downtime,
             penalty_preventive_late, penalty_not_performed, vessel_speed,
             transfer_time, max_time_offshore, max_vessels_available_charter,
             distance_base_OWF, technicians_available, capacity_base_for_vessels,
@@ -119,7 +118,7 @@ def unpack_parameters(params):
             tasks_in_bundles, technicians_required_bundle, weather_max_time_offshore,
             order_cost, lead_time, holding_cost, parts_required, max_part_capacity,
             reorder_level, big_m, max_capacity_for_docking,
-            additional_time, tech_standby_cost, initial_inventory)
+            initial_inventory)
 
 def unpack_variables(vars):
     """
