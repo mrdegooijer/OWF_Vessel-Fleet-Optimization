@@ -24,6 +24,7 @@ def main():
     # Load input data
     file_path = r'data/Inputs_Validation.xlsx'
     input_data = load_input_data(file_path)
+    print("Input data loaded successfully.")
     # Define the year of the weather data
     year = 2004
 
@@ -35,15 +36,21 @@ def main():
 
     # Create sets, parameters, and variables
     sets = create_sets(input_data)
+    print("Sets created.")
     params = create_parameters(input_data, sets, year)
+    print("Parameters created.")
     vars = create_variables(model, sets, params)
+    print("Variables created.")
     model.update()
 
     # Add constraints
     add_constraints(model, sets, params, vars)
+    print("Constraints added.")
 
     # Add objective function
     add_objective_function(model, sets, params, vars)
+    print("Objective function added.")
+    print(f"Time taken to create model: {time.time() - start_time:.2f} seconds")
 
     # Optimize the model
     GRASP(model, sets, params, vars, start_time)
@@ -51,6 +58,7 @@ def main():
         model.write("results/solution_dG25_Validation.sol")
 
     end_time = time.time()
+    print(f"Optimization completed in {end_time - start_time:.2f} seconds.")
 
     # Return the results
     results(model, sets, params, vars, start_time, end_time)

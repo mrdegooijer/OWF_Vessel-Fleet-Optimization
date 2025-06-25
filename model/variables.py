@@ -43,10 +43,10 @@ def create_variables(model, sets, params):
     chartered_vessels = model.addVars(bases, vessels, charter_periods, lb=0, vtype=GRB.INTEGER, name="chartered_vessels")
 
     #y_evpm
-    task_performed = model.addVars(locations, ctvessels, periods, tasks, lb=0, vtype=GRB.INTEGER, name="task_performance")
+    task_performed = model.addVars(locations, vessels, periods, tasks, lb=0, vtype=GRB.INTEGER, name="task_performance")
 
     #n_evpk
-    bundle_performed = model.addVars(locations, ctvessels, periods, bundles, lb=0, vtype=GRB.INTEGER, name="bundle_performance")
+    bundle_performed = model.addVars(locations, vessels, periods, bundles, lb=0, vtype=GRB.INTEGER, name="bundle_performance")
 
     #e_m
     tasks_late = model.addVars(prev_tasks, lb=0, vtype=GRB.INTEGER, name="tasks_late")
@@ -58,7 +58,7 @@ def create_variables(model, sets, params):
     periods_late = model.addVars(periods, corr_tasks, lb=0, vtype=GRB.INTEGER, name="periods_late")
 
     #r_evpm
-    hours_spent = model.addVars(locations, ctvessels, periods, tasks, lb=0, vtype=GRB.CONTINUOUS, name='hours_spent')
+    hours_spent = model.addVars(locations, vessels, periods, tasks, lb=0, vtype=GRB.CONTINUOUS, name='hours_spent')
 
 
 
@@ -66,13 +66,16 @@ def create_variables(model, sets, params):
 
     # Extension variables
     # q_sep
-    inventory_level = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="inventory_level")
+    # inventory_level = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="inventory_level")
+    inventory_level = 0
 
     # o_sep
-    order_quantity = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="order_quantity")
+    # order_quantity = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.INTEGER, name="order_quantity")
+    order_quantity = 0
 
     # o^trig_sep
-    order_trigger = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.BINARY, name="order_trigger")
+    # order_trigger = model.addVars(spare_parts, locations, periods, lb=0, ub=0, vtype=GRB.BINARY, name="order_trigger")
+    order_trigger = 0
 
     # d_ep
     mv_offshore = model.addVars(mother_vessels, periods, lb=0, ub=0, vtype=GRB.BINARY, name="mothervessel_offshore")
@@ -80,16 +83,20 @@ def create_variables(model, sets, params):
         mv_offshore[v, 1].ub = 0
 
     # lambda_sevp^P
-    lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_P")
+    # lambda_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_P")
+    lambda_P = 0
 
     # lambda_sevp^CH
-    lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_CH")
+    # lambda_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="lambda_CH")
+    lambda_CH = 0
 
     # mu_sevp^P
-    mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_P")
+    # mu_P = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_P")
+    mu_P = 0
 
     #mu_sevp^CH
-    mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_CH")
+    # mu_CH = model.addVars(spare_parts, bases, mother_vessels, periods, lb=0, ub=max_capacity, vtype=GRB.CONTINUOUS, name="mu_CH")
+    mu_CH = 0
 
     # Initial values
     for e in locations:

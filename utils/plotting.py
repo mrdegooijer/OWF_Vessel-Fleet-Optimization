@@ -14,23 +14,42 @@ def plot_parts_vars(vars, params, sets):
     max_capacity = params['max_part_capacity']
 
     # Create plot for each spare part at each base
+    # for e in locations:
+    #     for s in spare_parts:
+    #         plt.figure(figsize=(7.68, 5.76))
+    #         plt.title(f"Spare Part: {s} at Locations: {e}")
+    #         plt.xlabel("Period")
+    #         plt.ylabel("Inventory Level")
+    #         plt.xlim(0, 90)
+    #         plt.ylim(0, int(max_capacity[s, e]) + 10)
+    #         plt.xticks([p - 1 for p in periods[::15]] + [90])
+    #         plt.grid()
+    #         plt.plot(periods, [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
+    #         order_quantities = [vars['order_quantity'][s, e, p].X for p in periods]
+    #         plt.vlines(periods, ymin=0, ymax=order_quantities, label='Order Quantity', color='green',
+    #                    linestyles='-')
+    #         plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle=':', color='red')
+    #         plt.plot(periods, [max_capacity[s, e] for p in periods], label='Max Capacity', linestyle=':',
+    #                  color='orange')
+    #         plt.legend(loc='upper right')
+    #         plt.savefig(f"plots/spare_part_{s}_locations_{e}.png", bbox_inches='tight')
+    #         plt.close()
+
+    # Create plot for task performance at each location
     for e in locations:
-        for s in spare_parts:
-            plt.figure(figsize=(7.68, 5.76))
-            plt.title(f"Spare Part: {s} at Locations: {e}")
-            plt.xlabel("Period")
-            plt.ylabel("Inventory Level")
-            plt.xlim(0, 90)
-            plt.ylim(0, int(max_capacity[s, e]) + 10)
-            plt.xticks([p - 1 for p in periods[::15]] + [90])
-            plt.grid()
-            plt.plot(periods, [vars['inventory_level'][s, e, p].X for p in periods], label='Inventory Level')
-            order_quantities = [vars['order_quantity'][s, e, p].X for p in periods]
-            plt.vlines(periods, ymin=0, ymax=order_quantities, label='Order Quantity', color='green',
-                       linestyles='-')
-            plt.plot(periods, [reorder_level[s, e] for p in periods], label='Reorder Level', linestyle=':', color='red')
-            plt.plot(periods, [max_capacity[s, e] for p in periods], label='Max Capacity', linestyle=':',
-                     color='orange')
-            plt.legend(loc='upper right')
-            plt.savefig(f"plots/spare_part_{s}_locations_{e}.png", bbox_inches='tight')
-            plt.close()
+        plt.figure(figsize=(7.68, 5.76))
+        plt.title(f"Task Performance at Location: {e}")
+        plt.xlabel("Period")
+        plt.ylabel("Task Performed")
+        plt.xlim(0, 375)
+
+        plt.xticks([p - 1 for p in periods[::30]] + [90])
+        plt.grid()
+
+        for v in sets['vessels']:
+            y = [sum(vars['task_performed'][e, v, p, m].X for m in sets['tasks']) for p in periods]
+            plt.plot(periods, y, label=f'Vessel {v}')
+
+        plt.legend(loc='upper right')
+        plt.savefig(f"plots/task_performance_location_{e}.png", bbox_inches='tight')
+        plt.close()

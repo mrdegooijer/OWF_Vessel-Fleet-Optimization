@@ -48,15 +48,15 @@ def results(model, sets, params, vars, start_time, end_time):
         obj_cost_downtime_corrective = sum(cost_downtime[p] * (task_performed[e, v, p, m].x * (distance_base_OWF[e] / vessel_speed[v] + 2 * transfer_time[v] + time_to_perform_task[m]) + periods_late[p, m].x * 24) for e in locations for v in ctvessels for p in periods for m in corr_tasks)
         obj_cost_penalty_late = sum(penalty_preventive_late * tasks_late[m].x for m in prev_tasks)
         obj_cost_penalty_not_performed = sum(penalty_not_performed * tasks_not_performed[m].x for m in tasks)
-        obj_cost_spare_parts = sum(holding_cost[s, e] * inventory_level[s, e, p].x for s in spare_parts for e in locations for p in periods) + sum(order_cost[s] * order_quantity[s, e, p].x for s in spare_parts for e in bases for p in periods)
+        # obj_cost_spare_parts = sum(holding_cost[s, e] * inventory_level[s, e, p].x for s in spare_parts for e in locations for p in periods) + sum(order_cost[s] * order_quantity[s, e, p].x for s in spare_parts for e in bases for p in periods)
         # obj_cost_mothervessels = sum(cost_vessel_operation[v] * mv_offshore[v, p].x for v in mother_vessels for p in periods)
-        total_cost = obj_cost_bases + obj_cost_charter_vessel + obj_cost_operations_validation + obj_cost_downtime_preventive + obj_cost_downtime_corrective + obj_cost_penalty_late + obj_cost_penalty_not_performed + obj_cost_spare_parts
+        total_cost = obj_cost_bases + obj_cost_charter_vessel + obj_cost_operations_validation + obj_cost_downtime_preventive + obj_cost_downtime_corrective + obj_cost_penalty_late + obj_cost_penalty_not_performed
 
         # Print the vessels purchased and chartered at each base
         for b in bases:
             print('At ' + str(b))
-            for v in vessels:
-                print('The number of purchased vessels of type ' + str(v) + ' is: %d' % purchased_vessels[b, v].x)
+            # for v in vessels:
+            #     print('The number of purchased vessels of type ' + str(v) + ' is: %d' % purchased_vessels[b, v].x)
             for v in vessels:
                 for p in charter_periods:
                     print('The number of chartered vessels of type ' + str(v) + ' in period ' + str(p) + ' is: %d' %
@@ -74,7 +74,7 @@ def results(model, sets, params, vars, start_time, end_time):
         print(f"Cost of downtime - corrective tasks: {obj_cost_downtime_corrective:.2f}")
         print(f"Cost of penalties for late tasks: {obj_cost_penalty_late:.2f}")
         print(f"Cost of penalties for not performed tasks: {obj_cost_penalty_not_performed:.2f}")
-        print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
+        # print(f"Cost of spare parts management: {obj_cost_spare_parts:.2f}")
         # print(f"Cost of mothervessel operations: {obj_cost_mothervessels:.2f}")
         print(f"Total cost: {total_cost:.2f}")
 
