@@ -273,6 +273,8 @@ def add_constraints(model, sets, params, vars):
                 # Constraint 39: No order quantity when no mothervessel use
                 model.addConstr(order_quantity[s, e, p] <= big_m * quicksum(purchased_vessels[b, e] + chartered_vessels[b, e, return_charter_period(p, charter_dict)] for b in bases), name=f"39.no_order_quantity_when_no_mothervessel_use_{s},{e},{p}")
 
-
+    for p in charter_periods:
+        for b in bases:
+            model.addConstr(chartered_vessels[b, 'V5', p] <= big_m * chartered_vessels[b, 'V4', p], name=f"A.MV_DV_connection_{b},{p}")
 
     model.update()
