@@ -1,5 +1,3 @@
-from tkinter.font import nametofont
-
 from gurobipy import *
 from utils.utils import *
 from utils.initial_values import *

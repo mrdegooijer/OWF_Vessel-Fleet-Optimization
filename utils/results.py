@@ -2,8 +2,7 @@ from gurobipy import *
 from utils.utils import *
 from utils.initial_values import *
 from utils.plotting import plot_parts_vars
-import time
-import pickle
+
 
 
 def results(model, sets, params, vars, start_time, end_time, run_index, year):
