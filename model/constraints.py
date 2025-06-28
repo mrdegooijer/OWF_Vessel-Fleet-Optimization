@@ -281,8 +281,12 @@ def add_constraints(model, sets, params, vars):
     # for p in charter_periods:
     #     for b in bases:
     #         model.addConstr(chartered_vessels[b, 'V5', p] <= big_m * chartered_vessels[b, 'V4', p], name=f"A.MV_DV_connection_{b},{p}")
-    model.addConstrs((chartered_vessels[b, 'V5', p] <= big_m * chartered_vessels[b, 'V4', p] for b in bases for p in charter_periods), name='A.MV_DV_connection')
-    model.addConstrs((chartered_vessels[b, 'V5', p] >= 2 * chartered_vessels[b, 'V4', p] for b in bases for p in charter_periods), name='C.MV_is_2DV_connection')
+    # model.addConstrs((chartered_vessels[b, 'V5', p] <= big_m * chartered_vessels[b, 'V4', p] for b in bases for p in charter_periods), name='A.MV_DV_connection')
+    # model.addConstrs((chartered_vessels[b, 'V5', p] >= 2 * chartered_vessels[b, 'V4', p] for b in bases for p in charter_periods), name='C.MV_is_2DV_connection')
+    for p in charter_periods:
+        for b in bases:
+            model.addGenConstrIndicator(chartered_vessels[b, 'V4', p], 1, chartered_vessels[b, 'V5', p] == 2, name=f"A.MV_DV_connection_{b},{p}")
+            model.addGenConstrIndicator(chartered_vessels[b, 'V4', p], 0, chartered_vessels[b, 'V5', p] == 0, name=f"B.MV_DV_connection_{b},{p}")
 
     # for e in mother_vessels:
     #     for m in tasks:

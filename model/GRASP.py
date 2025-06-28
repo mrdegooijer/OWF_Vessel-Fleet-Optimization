@@ -292,7 +292,7 @@ def GRASP(model, sets, params, vars, start_time):
     final_objective = min(objective[i] for i in range(len(objective)))  # the resulting objective value
     final_solution = solution[min(objective, key=objective.get)]  # the resulting solution corresponding to the objective value
     print(f"Final solution: {final_solution} from iteration {min(objective, key=objective.get)}")
-    # final_solution = [3.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    # final_solution = [0.0, 0.0, 0.0, 1.0, 2.0, 1.0]
 
     # --- 7. --- Set the final solution and optimize the model
     for b in bases:
