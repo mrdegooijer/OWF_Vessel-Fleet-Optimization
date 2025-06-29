@@ -48,7 +48,7 @@ def main():
     # Optimize the model
     GRASP(model, sets, params, vars, start_time)
     if model.status == GRB.OPTIMAL:
-        model.write("results/solution_dG25_ME-GRASP.sol")
+        model.write("results/solution_dG25_inventory_validation.sol")
 
     end_time = time.time()
 

@@ -63,10 +63,10 @@ def add_constraints(model, sets, params, vars):
                 model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (max_time_offshore[v] - transfer_time[v] * (1 + len(bundle_dict[k])))) for k in bundles), name=f"4.max_time_offshore_(mv)_{e},{v},{p}")
 
     # Constraint 5: Weather restrictions (for ctvs)
-    for e in locations:
-        for v in ctvessels:
-            for p in periods:
-                model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[e] / vessel_speed[v])) for k in bundles), name=f"5.weather_restrictions_ctv_{e},{v},{p}")
+    # for e in locations:
+    #     for v in ctvessels:
+    #         for p in periods:
+    #             model.addConstr(quicksum(hours_spent[e, v, p, m] for m in tasks) <= quicksum(bundle_performed[e, v, p, k] * (len(bundle_dict[k]) * (weather_max_time_offshore[v, p] - transfer_time[v] * (1 + len(bundle_dict[k]))) - 2 * (distance_base_OWF[e] / vessel_speed[v])) for k in bundles), name=f"5.weather_restrictions_ctv_{e},{v},{p}")
 
     # Constraint 6: Location capacity for technicians
     for e in locations:

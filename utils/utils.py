@@ -16,22 +16,29 @@ def load_input_data(file_path):
     return data
 
 
+# def generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, input_tasks):
+#
+#     daily_failures = pd.DataFrame(index=corr_tasks, columns=periods)
+#     failures = {}
+#     for m in corr_tasks:
+#         for p in periods:
+#             failures[p] = np.random.uniform(size=turbines)  # uniform distribution of the failures
+#             daily_failures.loc[m, p] = sum(x < input_tasks.loc[m, 'failure_rate'] / len(periods) for x in failures[p])
+#
+#     return daily_failures
+
 def generate_corrective_maintenance_tasks(corr_tasks, periods, turbines, input_tasks):
-
-    daily_failures = pd.DataFrame(index=corr_tasks, columns=periods)
-    failures = {}
-    for m in corr_tasks:
-        for p in periods:
-            failures[p] = np.random.uniform(size=turbines)  # uniform distribution of the failures
-            daily_failures.loc[m, p] = sum(x < input_tasks.loc[m, 'failure_rate'] / len(periods) for x in failures[p])
-
+    """
+    Set exactly one failure per period for each corrective task.
+    """
+    daily_failures = pd.DataFrame(1, index=corr_tasks, columns=periods)
     return daily_failures
 
 
 def generate_task_bundles(tasks):
     bundle_dict = {}
     bundle_id = 1
-    for i in range(1, 5):  # bundle sizes 1 to 4
+    for i in range(1, 2):  # bundle sizes 1 to 1
         for combo in itertools.product(tasks, repeat=i):
             bundle_name = f'K{bundle_id}'
             bundle_dict[bundle_name] = combo
