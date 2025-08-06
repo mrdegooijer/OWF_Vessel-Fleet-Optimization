@@ -117,9 +117,9 @@ for m in cor_tasks:
 
 #Weather
 #2004
-weather = pd.read_excel('weatherconditions.xlsx', nrows = 8783, usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+# weather = pd.read_excel('weatherconditions.xlsx', nrows = 8783, usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
 #2005
-#weather = pd.read_excel('weatherconditions.xlsx', nrows = 8760, skiprows = range(1,8784), usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
+weather = pd.read_excel('weatherconditions.xlsx', nrows = 8760, skiprows = range(1,8784), usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
 #2006
 #weather = pd.read_excel('weatherconditions.xlsx', nrows = 8760, skiprows = range(1,17544), usecols=['Year', 'Month', 'Day', 'Hour', 'Wind Speed', 'Wave Height'])
 #2007
@@ -355,12 +355,12 @@ print('Model loaded')
 # ---------------------------- Greedy construction algorithm ----------------------------
 
 # Set all bases and vessels to zero
-for b in bases:
-    base_used[b].ub = 0
-    for v in vessels:
-        purchased_vessel[b,v].ub = 0
-        for p in range(len(charter_periods)):
-            chartered_vessel[b,v,p].ub = 0
+# for b in bases:
+#     base_used[b].ub = 0
+#     for v in vessels:
+#         purchased_vessel[b,v].ub = 0
+#         for p in range(len(charter_periods)):
+#             chartered_vessel[b,v,p].ub = 0
 
 # Choose optimal bases
 # obj_value_b = {}
@@ -394,30 +394,30 @@ base_used['B1'].ub = 1
 #     purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].lb = min(obj_value_pv[v], key=obj_value_pv[v].get)
 #     purchased_vessel[min(obj_value_b, key=obj_value_b.get),v].ub = min(obj_value_pv[v], key=obj_value_pv[v].get)
 
-# Choose optimal fleet of chartered vessels
-obj_value_cv = {}
-for v in vessels:
-    obj_value_cv[v] = {}
-    for p in range(len(charter_periods)):
-        obj_value_cv[v][p] = {}
-        for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc['B1', v])+1):
-            print(f"Chartered vessel {v} in period {p} with {i} vessels")
-            obj_value_cv[v][p][i] = float('inf')
-            chartered_vessel['B1',v,p].ub = i
-            chartered_vessel['B1',v,p].lb = i
-
-            model.optimize()
-            if model.status == GRB.Status.OPTIMAL:
-                obj_value_cv[v][p][i] = model.objVal
-        chartered_vessel['B1',v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
-        chartered_vessel['B1',v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
-
-model.optimize()
-print(f"Greedy construction algorithm finished with objective value: {model.objVal}")
-
-if model.status == GRB.Status.OPTIMAL:
-    print('Initial solution objective value:', model.objVal)
-    print('Chartered vessels:', {b: {v: {p: chartered_vessel[b,v,p].x for p in range(len(charter_periods))} for v in vessels} for b in bases})
+# Choose optimal fleet of chartered vessels (edit out from here)
+# obj_value_cv = {}
+# for v in vessels:
+#     obj_value_cv[v] = {}
+#     for p in range(len(charter_periods)):
+#         obj_value_cv[v][p] = {}
+#         for i in range(min(df_vessels.loc[v, 'available'],base_cap_vessels.loc['B1', v])+1):
+#             print(f"Chartered vessel {v} in period {p} with {i} vessels")
+#             obj_value_cv[v][p][i] = float('inf')
+#             chartered_vessel['B1',v,p].ub = i
+#             chartered_vessel['B1',v,p].lb = i
+#
+#             model.optimize()
+#             if model.status == GRB.Status.OPTIMAL:
+#                 obj_value_cv[v][p][i] = model.objVal
+#         chartered_vessel['B1',v,p].ub = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
+#         chartered_vessel['B1',v,p].lb = min(obj_value_cv[v][p], key=obj_value_cv[v][p].get)
+#
+# model.optimize()
+# print(f"Greedy construction algorithm finished with objective value: {model.objVal}")
+#
+# if model.status == GRB.Status.OPTIMAL:
+#     print('Initial solution objective value:', model.objVal)
+#     print('Chartered vessels:', {b: {v: {p: chartered_vessel[b,v,p].x for p in range(len(charter_periods))} for v in vessels} for b in bases})
 
 
 # ---------------------------- Tabu search ----------------------------
@@ -429,14 +429,24 @@ it_objectives = {}          # objective values for each neighbor at each iterati
 tabu = []                   # list of tabu moves
 solution[iteration] = []    # solution for each neighbor at each iteration
 
-# chartered vessels
-for b in bases:
-    for v in vessels:
-        for p in range(len(charter_periods)):
-            solution[iteration].append(chartered_vessel[b,v,p].x)
-# base use
-for b in bases:
-    solution[iteration].append(base_used[b].x)
+# # chartered vessels
+# for b in bases:
+#     for v in vessels:
+#         for p in range(len(charter_periods)):
+#             solution[iteration].append(chartered_vessel[b,v,p].x)
+# # base use
+# for b in bases:
+#     solution[iteration].append(base_used[b].x)
+
+for p in range(len(charter_periods)):
+    chartered_vessel['B1', 'V1', p].lb = 2
+    chartered_vessel['B1', 'V1', p].ub = 2
+    chartered_vessel['B1', 'V2', p].lb = 2
+    chartered_vessel['B1', 'V2', p].ub = 2
+
+solution[iteration] = [2.0, 2.0, 0.0, 0.0, 0.0, 1.0]
+model.optimize()
+
 
 # for i in range(len(chartered_vessel)+len(bases)):
 #     solution[iteration].append(model.getVarByName("C"+str(i)).x)
@@ -493,7 +503,7 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
     for b in bases:
         for v in vessels:
             for p in range(len(charter_periods)):
-                i = len(purchased_vessel) + bases.index(b)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + p
+                i = bases.index(b)*(len(vessels)+len(charter_periods)) + vessels.index(v)*len(charter_periods) + p
                 # add a chartered vessel
                 nb = sol.copy()
                 if nb[i] < base_cap_vessels.loc[b,v] and 'add '+str(b)+str(v)+str(p) not in tabu:
@@ -606,7 +616,8 @@ while iteration < max_it and time.time() - start_time < 3600:        # stopping 
     best_objective_so_far.append(min(objective[o] for o in range(iteration)))
     print(f"{iteration}. Solution vector: {solution[iteration]} with objective value: {objective[iteration]}")
     tabu.append(it_move[it_objectives[iteration].index(min(it_objectives[iteration]))])
-
+    print(f"Full Solution vector:{solution}")
+    print(f"Full Objective vector:{objective}")
     # stopping criteria if no improvements in objective value have been found
     if iteration > 3:
         if objective[iteration-1] > min(best_objective_so_far) and objective[iteration-2] > min(best_objective_so_far) and objective[iteration] > min(best_objective_so_far):
@@ -619,15 +630,12 @@ final_solution = solution[min(objective, key=objective.get)]            # the re
 print(f"Final solution: {final_solution} from iteration {min(objective, key=objective.get)}")
 # set each decision variable to the resulting solution
 for b in bases:
-    l = len(purchased_vessel)+len(chartered_vessel) + bases.index(b)
+    l = len(chartered_vessel) + bases.index(b)
     base_used[b].lb = final_solution[l]
     base_used[b].lb = final_solution[l]
     for v in vessels:
-        i = bases.index(b)*len(vessels) + vessels.index(v)
-        purchased_vessel[b,v].lb = final_solution[i]
-        purchased_vessel[b,v].ub = final_solution[i]
         for p in range(len(charter_periods)):
-            j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p + len(purchased_vessel)
+            j = bases.index(b)*len(vessels)*len(charter_periods) + vessels.index(v)*len(charter_periods) + p
             chartered_vessel[b,v,p].lb = final_solution[j]
             chartered_vessel[b,v,p].ub = final_solution[j]
 
